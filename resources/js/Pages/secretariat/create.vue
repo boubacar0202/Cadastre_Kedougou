@@ -140,6 +140,7 @@ const form = useForm({
     txt_adressePM: "", 
     // Personne morale
     slt_etablissementPA: "",
+    txt_nomEtablissementPA: "",
     txt_personneResponsablePA: "",
     txt_fonctionResponsablePA: "",
     txt_telephonePA: "",
@@ -1163,6 +1164,13 @@ const submitForm = function () {
                                                 {value: 'Universitaire', label: 'Universitaire'},
                                                 {value: 'Autres', label: 'Autres'},
                                             ]"
+                                        /> 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                                        <BaseInput 
+                                            v-if="showSectionPA"
+                                            label="Nom Etablissement"
+                                            name="txt_nomEtablissementPA"  
+                                            v-model="form.txt_nomEtablissementPA"  
                                         /> 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
                                         <BaseInput 
