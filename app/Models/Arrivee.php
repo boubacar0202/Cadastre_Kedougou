@@ -38,5 +38,9 @@ class Arrivee extends Model
         'txt_observation', 
         'fichierPDF',
     ];
-       
+
+    public function attributions()
+    {
+        return $this->hasMany(AttributionDossier::class, 'arrivee_id');
+    }
 }

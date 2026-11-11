@@ -15,7 +15,7 @@ import { baremeOptions, coefficientBareme, mapsFromBaremes, tauxLocatifBareme } 
 defineOptions({ layout: DefaultLayout });
 
 // Props
-const { terrain, regions, departements, arrondissements, communes, titulaire, lotissements, references_usages, occupants, occupantsBP, baremes = [] } =
+const { terrain, regions, departements, arrondissements, communes, titulaire, lotissements, references_usages, occupants, occupantsBP, baremes = [], agents = [] } =
   defineProps({
     terrain: Object,
     regions: Array,
@@ -27,6 +27,7 @@ const { terrain, regions, departements, arrondissements, communes, titulaire, lo
     occupants: Array,
     occupantsBP: Array,
     baremes: { type: Array, default: () => [] },
+    agents: { type: Array, default: () => [] },
   });
 
 const { categories, prixParSecteur, coeffCAValues, coeffCLValues } = mapsFromBaremes(baremes);
@@ -414,6 +415,7 @@ const form = useForm({
   txt_etat_cession: terrain?.dossier?.txt_etat_cession || "",
   txt_cession_definitive: terrain?.dossier?.txt_cession_definitive || "",
   dt_date_creation: formatDate(terrain?.dossier?.dt_date_creation) || "",
+  txt_agentTraiteur: terrain?.dossier?.txt_agentTraiteur || "",
   // Terrain
   slt_region: terrain?.region?.id || "",
   slt_departement: terrain?.departement?.id || "",
@@ -559,6 +561,15 @@ const form = useForm({
   nbr_valeur_totale_ap: terrain?.evaluations_amenagements?.nbr_valeur_totale_ap || "",
   // Champs ajoutés
   txt_superficie_non_bati: "",
+});
+
+const agentsTraiteurs = computed(() => {
+  const options = [...(agents || [])];
+  const courant = form.txt_agentTraiteur;
+  if (courant && !options.some((agent) => agent.value === courant)) {
+    options.unshift({ value: courant, label: courant });
+  }
+  return options;
 });
 
 const lotissementsListe = ref(lotissements || []);
@@ -1891,6 +1902,15 @@ async function submit() {
                                   <div v-if="form.fichierPDF && typeof form.fichierPDF === 'string'" class="mt-2">
                                     <a :href="`/storage/${form.fichierPDF}`" target="_blank" class="text-primary underline">Voir le fichier</a>
                                   </div>
+                                </div>
+                                <div class="sm:col-span-2">
+                                  <BaseSelect
+                                    label="Agent Traiteur"
+                                    name="txt_agentTraiteur"
+                                    v-model="form.txt_agentTraiteur"
+                                    placeholder="Sélectionner un agent"
+                                    :options="agentsTraiteurs"
+                                  />
                                 </div>
                               </div>
                             </div>

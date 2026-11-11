@@ -65,7 +65,11 @@ const props = defineProps({
         default: () => [],
     }, 
     communes: Array,
-    lotissements: Array
+    lotissements: Array,
+    agents: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 // Formulaire 
@@ -142,6 +146,16 @@ const form = useForm({
     txt_emailPA: "",
     txt_ministèreTutelePA: "",
     fichierPDF: "",
+    txt_agentTraiteur: "",
+});
+
+const agentsTraiteurs = computed(() => {
+    const options = [...(props.agents || [])];
+    const courant = form.txt_agentTraiteur;
+    if (courant && !options.some((agent) => String(agent.value) === String(courant))) {
+        options.unshift({ value: courant, label: courant });
+    }
+    return options;
 });
 
 // ✅ CORRIGÉ : Fonction pour réinitialiser TOUS les champs cadastraux
@@ -458,6 +472,11 @@ const submitForm = function () {
     // 4. Vérifier que le titulaire est sélectionné
     if (!form.slt_titulaire) {
         toast.error("❌ Veuillez sélectionner un titulaire.");
+        return;
+    }
+
+    if (!form.txt_agentTraiteur) {
+        toast.error("Veuillez sélectionner l'agent traiteur. Le dossier lui sera attribué.");
         return;
     }
 
@@ -1193,6 +1212,22 @@ const submitForm = function () {
                                             name="fichierPDF" 
                                             @change="handleFileUpload" 
                                         /> 
+                                                                                
+                                        <div class="sm:col-span-2">
+                                            <BaseSelect
+                                                label="Agent Traiteur"
+                                                name="txt_agentTraiteur"
+                                                v-model="form.txt_agentTraiteur"
+                                                wrapper-class=""
+                                                required
+                                                placeholder="Sélectionner un agent"
+                                                :options="agentsTraiteurs"
+                                                :custom-error="form.errors.txt_agentTraiteur"
+                                            />
+                                            <p class="mt-1 text-xs text-primary-txt/70">
+                                                Le dossier est attribué à cet agent. Il dispose de 10 jours pour le traiter.
+                                            </p>
+                                        </div> 
                                     </div>
                                 </div>
                                 <br />

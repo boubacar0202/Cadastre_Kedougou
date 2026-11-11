@@ -10,6 +10,7 @@ import { route } from 'ziggy-js'
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
 const isAdmin = computed(() => user.value?.role === 'admin');
+const dossiersEnCours = computed(() => Number(page.props.dossiers_en_cours || 0));
 const isMenuOpen = ref((() => {
     if (typeof window === 'undefined' || window.innerWidth < 768) return false;
     const saved = localStorage.getItem('menuOpen');
@@ -391,6 +392,25 @@ onUnmounted(() => {
                                 Plan
                             </NavLink>
                             
+                            <NavLink :href="isAdmin ? route('traitementDossier.index') : route('traitementDossier.create')" :active="route().current('traitementDossier.index') || route().current('traitementDossier.create')" 
+                                class="relative hover:from-primary hover:to-primary-dark hover:bg-gradient-to-r
+                                hover:shadow-lg hover:scale-[1.02] hover:text-white hover:text-1xl hover:font-bold p-2 
+                                rounded-xl text-lg text-primary-txt border-l-8 border flex w-full items-center" :class="{'border-primary-menu': route().current('traitementDossier.index') || route().current('traitementDossier.create')}">
+                                <svg class="w-6 h-6 mr-4 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 6.5A1.5 1.5 0 0 1 5.5 5H10l1.5 2H18.5A1.5 1.5 0 0 1 20 8.5V18a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18V6.5z" fill="#ff7a18"/>
+                                    <path d="M7 11.5h6M7 14.5h4" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+                                    <circle cx="17.2" cy="16.2" r="3.4" fill="#613104"/>
+                                    <path d="M15.6 16.2 16.7 17.3 18.9 15" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span class="truncate">Traitement Dossiers</span>
+                                <span
+                                    v-if="dossiersEnCours > 0"
+                                    class="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-bold leading-none text-white"
+                                >
+                                    {{ dossiersEnCours > 99 ? "99+" : dossiersEnCours }}
+                                </span>
+                            </NavLink>
+                            
                             <!-- Paramètres : visible uniquement pour les administrateurs -->
                             <template v-if="isAdmin">
                             <div
@@ -537,6 +557,19 @@ onUnmounted(() => {
                                         <path d="M7 15l3-4 3 2 4-6" stroke="#00c6ff" stroke-width="2" fill="none"/>
                                     </svg>
                                     Evalutation
+                                </NavLink>
+
+                                <NavLink
+                                    :href="route('parametre.evaluation.user')" :active="route().current('parametre.evaluation.user')"
+                                    class="relative hover:bg-primary-dark hover:text-white hover:font-bold hover:text-1xl p-2
+                                    rounded-xl text-lg text-primary-txt border-l-8 border flex items-center"
+                                >
+                                    <svg class="w-6 h-6 mr-4 shrink-0" viewBox="0 0 24 24" fill="none">
+                                        <circle cx="8" cy="8" r="3" fill="#ff7a18"/>
+                                        <path d="M3 19c.4-2.6 2.2-4 5-4s4.6 1.4 5 4" fill="#ff7a18"/>
+                                        <path d="M14 14v6M14 20h6M17 14v6" stroke="#4facfe" stroke-width="1.8" stroke-linecap="round"/>
+                                    </svg>
+                                    Evaluation User
                                 </NavLink> 
 
                             </div>

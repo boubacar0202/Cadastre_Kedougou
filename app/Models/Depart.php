@@ -37,5 +37,9 @@ class Depart extends Model
             'txt_dureetraitementcd',
             'fichierPDFcd',
     ];
- 
+
+    public function attributions()
+    {
+        return $this->hasMany(AttributionDossier::class, 'depart_id');
+    }
 }
