@@ -424,6 +424,16 @@ class SecretariatController extends Controller
                 'txt_cession_definitive' => $validated['txt_cession_definitive'] ?? null,
                 'dt_date_creation' => $validated['dt_date_creation'],
                 'txt_agentTraiteur' => $agent->name,
+            ],
+            [
+                'txt_num_dossier.required' => 'Le champ "Numéro de dossier" est obligatoire.',
+                'txt_num_dordre.required' => 'Le champ "Numéro d\'ordre" est obligatoire.',
+                'slt_service_rendu.required' => 'Le champ "Service rendu" est obligatoire.',
+                'txt_etat_cession.required' => 'Le champ "État de cession" est obligatoire.',
+                'txt_cession_definitive.required' => 'Le champ "Cession définitive" est obligatoire.',
+                'dt_date_creation.required' => 'Le champ "Date de création" est obligatoire.',
+                'txt_agentTraiteur.required' => 'Le champ "Agent Traiteur" est obligatoire.',
+                'txt_agentTraiteur.exists' => 'L\'agent sélectionné est introuvable.',
             ]);
 
             $attributions->attribuer($dossier, $agent, $request->user());
