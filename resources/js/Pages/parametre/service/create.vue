@@ -1,6 +1,8 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm, Link as InertiaLink } from "@inertiajs/vue3";
+import { Head, useForm } from "@inertiajs/vue3";
+import BoutonModifier from "@/Components/BoutonModifier.vue";
+import BoutonSupprimer from "@/Components/BoutonSupprimer.vue";
 import MazBtn from "maz-ui/components/MazBtn";
 import DeleteModal from "@/Components/DeleteModal.vue";
 import { ref, computed } from "vue";
@@ -373,27 +375,10 @@ const confirmerSuppression = async ({ adminCode } = {}) => {
                                                             <span v-else class="text-primary-txt/60 italic">Aucun PDF</span>
                                                         </td>
                                                         <td class="px-4 py-2 text-center whitespace-nowrap border border-primary-only">
-                                                            <!-- ✅ InertiaLink correctement importé + route() -->
-                                                            <InertiaLink :href="route('parametre.service.edit', service.id)">
-                                                                <MazBtn
-                                                                    size="medium"
-                                                                    aria-label="Modifier"
-                                                                    title="Modifier"
-                                                                    class="h-6 text-white bg-gradient-to-r from-primary via-primary-dark to-primary font-medium rounded-lg text-xs px-3 py-1"
-                                                                >
-                                                                    ✏️
-                                                                </MazBtn>
-                                                            </InertiaLink>
-
-                                                            <MazBtn
-                                                                size="medium"
-                                                                aria-label="Supprimer"
-                                                                title="Supprimer"
-                                                                @click="supprimerService(service)"
-                                                                class="h-6 text-white bg-primary-txt font-medium rounded-lg text-xs px-3 py-1"
-                                                            >
-                                                                🗑️
-                                                            </MazBtn>
+                                                            <div class="flex justify-center gap-2">
+                                                                <BoutonModifier :href="route('parametre.service.edit', service.id)" />
+                                                                <BoutonSupprimer @click="supprimerService(service)" />
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 </tbody>

@@ -1,6 +1,6 @@
 <script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { useForm } from "@inertiajs/vue3";
+import PageFrame from "@/Components/PageFrame.vue";
 import { toast } from "@/Components/AppToast";
 import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import BaseInput from "@/Components/BaseInput.vue";
@@ -51,25 +51,11 @@ const submitForm = () => {
 </script>
 
 <template>
-    <Head title="Modifier un texte" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-primary-txt">
-                Modifier un Recueil de texte
-            </h2>
-        </template>
-
-        <div class="py-12">
-            <div class="flex justify-center">
-                <div class="w-full max-w-8xl px-2 py-2">
-                    <div class="bg-white shadow-md rounded-xl">
-                        <div class="p-4 border-b bg-primary rounded-t-xl">
-                            <h1 class="text-lg text-white font-semibold">
-                                Modification du texte : {{ service.txt_numeroNote }}
-                            </h1>
-                        </div>
-
+    <PageFrame
+        page-title="Modifier un texte"
+        header="Modifier un Recueil de texte"
+        :banner="`Modification du texte : ${service.txt_numeroNote}`"
+    >
                         <form @submit.prevent="submitForm">
                             <div class="p-6">
                                 <h5 class="text-lg text-primary-txt font-bold mb-4">
@@ -139,9 +125,5 @@ const submitForm = () => {
                                 </div>
                             </div>
                         </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </AuthenticatedLayout>
+    </PageFrame>
 </template>

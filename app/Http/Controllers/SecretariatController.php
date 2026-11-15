@@ -433,7 +433,7 @@ class SecretariatController extends Controller
                 'txt_cession_definitive.required' => 'Le champ "Cession définitive" est obligatoire.',
                 'dt_date_creation.required' => 'Le champ "Date de création" est obligatoire.',
                 'txt_agentTraiteur.required' => 'Le champ "Agent Traiteur" est obligatoire.',
-                'txt_agentTraiteur.exists' => 'L\'agent sélectionné est introuvable.',
+                'txt_agentTraiteur.exists' => 'L\'agent sélectionné est introuvable.',""
             ]);
 
             $attributions->attribuer($dossier, $agent, $request->user());

@@ -1,6 +1,8 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import BaseInput from "@/Components/BaseInput.vue";
+import BoutonModifier from "@/Components/BoutonModifier.vue";
+import BoutonSupprimer from "@/Components/BoutonSupprimer.vue";
 import { Head, usePage } from "@inertiajs/vue3";
 import { ref, onMounted, onUnmounted, computed, nextTick, watch } from "vue";
 import axios from "axios";
@@ -493,14 +495,10 @@ async function updateMessage() {
                                         </button>
                                         <div
                                             v-if="activeMenuId === msg.id"
-                                            class="absolute top-8 right-0 z-20 w-36 animate-fade-in rounded-xl border border-gray-100 bg-white p-1 text-primary-txt shadow-lg"
+                                            class="absolute top-8 right-0 z-20 flex w-40 flex-col gap-1 rounded-xl border border-primary-only bg-white p-1.5 text-primary-txt shadow-lg"
                                         >
-                                            <button type="button" @click="editMessage(msg)" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-gray-50">
-                                                Modifier
-                                            </button>
-                                            <button type="button" @click="deleteMessage(msg.id)" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50">
-                                                Supprimer
-                                            </button>
+                                            <BoutonModifier class="w-full" @click="editMessage(msg)" />
+                                            <BoutonSupprimer class="w-full" @click="deleteMessage(msg.id)" />
                                         </div>
                                     </template>
                                 </div>

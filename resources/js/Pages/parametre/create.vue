@@ -1,6 +1,6 @@
 <script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
-import { Head, useForm } from "@inertiajs/vue3";
+import { useForm } from "@inertiajs/vue3";
+import PageFrame from "@/Components/PageFrame.vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import MazInput from "maz-ui/components/MazInput";
@@ -60,25 +60,11 @@ const submitForm = function () {  // Ajoutez `async` ici
 </script>
 
 <template>
-    <Head title="Secretariat" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-primary-txt">
-                Pramètres
-            </h2>
-
-        </template>
-
-        <div class="py-12">
-            <div class="flex justify-center">
-                <div class="w-full max-w-7xl">
-                    <div class="bg-white shadow-md rounded-lg">
-                        <!-- En-tête du formulaire -->
-                        <div   class="p-4 border-b bg-primary">
-                            <h1 class="text-lg text-white font-semibold">Formulaire</h1>
-                        </div>
-                        <!-- Corps du formulaire -->
+    <PageFrame
+        page-title="Secretariat"
+        header="Pramètres"
+        banner="Formulaire"
+    >
                         <form @submit.prevent="submitForm">
                             <div class="p-6">
                                 <!-- Section Parcelle -->
@@ -154,10 +140,6 @@ const submitForm = function () {  // Ajoutez `async` ici
                                 </div>
                             </div>
                         </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </AuthenticatedLayout>
+    </PageFrame>
 </template>
 

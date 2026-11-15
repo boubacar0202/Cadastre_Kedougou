@@ -3,10 +3,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import BaseInput from '@/Components/BaseInput.vue';
 import BaseSelect from '@/Components/BaseSelect.vue';
 import { ref, computed, watch, onMounted } from 'vue';
-import { Head, router, Link } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { toast } from "@/Components/AppToast";
 import DeleteModal from "@/Components/DeleteModal.vue";
-import MazBtn from "maz-ui/components/MazBtn";
+import BoutonModifier from "@/Components/BoutonModifier.vue";
+import BoutonSupprimer from "@/Components/BoutonSupprimer.vue";
 import { debounce } from 'lodash'; 
 import { Inertia } from '@inertiajs/inertia';
 
@@ -482,34 +483,8 @@ function telephoneRepresentant(titulaire) {
                                             </td>
                                             <td class="sticky right-0 z-8 px-2 py-1 border bg-white whitespace-nowrap">
                                                 <div class="flex justify-center gap-2">
-                                                    <!-- Edit -->  
-                                                    <Link :href="`/secretariat/edit/${terrain.id}`">
-                                                        <MazBtn 
-                                                            size="large"  
-                                                            class="h-6 w-6 text-white bg-gradient-to-r from-green-500 via-green-600 
-                                                            to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
-                                                            focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 
-                                                            dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg text-xs px-5 
-                                                            py-2.5 text-center me-2 mb-2"
-                                                        >
-                                                            ✏️
-                                                        </MazBtn>
-                                                    </Link> 
-
-                                                    <!-- Delete -->
-                                                    <MazBtn 
-                                                        size="large" 
-                                                        color="danger" 
-                                                        @click="supprimerTerrain(terrain)" 
-                                                        :disabled="loadingDelete"
-                                                        class="h-6 w-6 text-white bg-gradient-to-r from-red-500 via-red-600 
-                                                        to-red-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
-                                                        focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 
-                                                        dark:shadow-lg dark:shadow-red-800/80 font-medium rounded-lg text-xs px-5 
-                                                        py-2.5 text-center me-2 mb-2"
-                                                    >
-                                                        🗑 
-                                                    </MazBtn>
+                                                    <BoutonModifier :href="`/secretariat/edit/${terrain.id}`" />
+                                                    <BoutonSupprimer :disabled="loadingDelete" @click="supprimerTerrain(terrain)" />
                                                 </div>
                                             </td>
                                         </tr>

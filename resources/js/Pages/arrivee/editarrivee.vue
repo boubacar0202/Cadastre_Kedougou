@@ -2,6 +2,7 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
+import BoutonSupprimer from "@/Components/BoutonSupprimer.vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import { onMounted, ref, watch, computed } from "vue";
@@ -248,7 +249,7 @@ async function submit() {
                                          
                                         <BaseInput
                                             class="sm:col-span-1"
-                                            label="N° Dordre Arrivée"
+                                            label="N° d'ordre arrivée"
                                             name="txt_numdordre" 
                                             autocomplete="on" 
                                             v-model="form.txt_numdordre"
@@ -489,9 +490,7 @@ async function submit() {
                                             <a :href="`/storage/${existingPdf}`" target="_blank" class="underline">
                                                 PDF actuel
                                             </a>
-                                            <button type="button" class="text-red-600" @click="deleteFile(arrivees)">
-                                                Supprimer le PDF
-                                            </button>
+                                            <BoutonSupprimer @click="deleteFile(arrivees)">Supprimer le PDF</BoutonSupprimer>
                                         </div>
 
                                     </div>

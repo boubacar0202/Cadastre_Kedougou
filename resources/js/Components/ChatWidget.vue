@@ -3,6 +3,8 @@ import { usePage } from "@inertiajs/vue3";
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import axios from "axios";
 import BaseInput from "@/Components/BaseInput.vue";
+import BoutonModifier from "@/Components/BoutonModifier.vue";
+import BoutonSupprimer from "@/Components/BoutonSupprimer.vue";
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user || null);
@@ -391,10 +393,10 @@ onUnmounted(() => {
                             >
                                 ⋮
                             </button>
-                            <div v-if="activeMenuId === msg.id" class="chat-menu">
-                                <button type="button" class="text-primary-txt" @click="editMessage(msg)">Modifier</button>
-                                <button type="button" class="text-danger-500" @click="deleteMessage(msg.id)">Supprimer</button>
-                            </div>
+                                <div v-if="activeMenuId === msg.id" class="chat-menu">
+                                    <BoutonModifier class="w-full" @click="editMessage(msg)" />
+                                    <BoutonSupprimer class="w-full" @click="deleteMessage(msg.id)" />
+                                </div>
                         </div>
                     </div>
                     </template>
@@ -630,24 +632,13 @@ onUnmounted(() => {
     right: 0;
     z-index: 2;
     display: grid;
-    min-width: 7rem;
-    overflow: hidden;
+    gap: 0.35rem;
+    min-width: 8.75rem;
+    padding: 0.35rem;
     border: 1px solid #e6c5a2;
     border-radius: 0.7rem;
     background: white;
     box-shadow: 0 8px 24px rgba(44, 24, 16, 0.12);
-}
-
-.chat-menu button {
-    border: 0;
-    background: white;
-    padding: 0.45rem 0.7rem;
-    text-align: left;
-    font-size: 0.82rem;
-}
-
-.chat-menu button.is-danger {
-    color: #9b3a2f;
 }
 
 .chat-day {

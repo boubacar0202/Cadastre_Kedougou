@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from "vue"; 
-import MazBtn from "maz-ui/components/MazBtn";
+import SecondaryButton from "@/Components/SecondaryButton.vue";
+import BoutonSupprimer from "@/Components/BoutonSupprimer.vue";
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline';
 import BaseInput from "@/Components/BaseInput.vue";
 
@@ -125,24 +126,14 @@ const toggleDeletePassword = () => {
             </BaseInput>
 
             <div class="flex justify-center items-center gap-3">
-                <MazBtn
-                    size="large"
-                    class="h-10 w-36 bg-gradient-to-r from-green-400 to-green-600 text-white font-semibold rounded-2xl"
-                    @click="closeModal"
-                    :disabled="loading"
-                >
+                <SecondaryButton type="button" class="h-10 min-w-36 justify-center" :disabled="loading" @click="closeModal">
                     Annuler
-                </MazBtn>
-
-                <MazBtn
-                    size="large"
-                    :loading="loading"
-                    class="h-10 w-36 bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white font-semibold rounded-2xl"
+                </SecondaryButton>
+                <BoutonSupprimer
+                    size="md"
                     @click="confirmer"
                     :disabled="loading || deleteCode.trim().toUpperCase() !== 'SUPPRIMER' || !adminCode || adminCode.trim() === ''"
-                >
-                    Supprimer
-                </MazBtn>
+                />
             </div>
         </div>
     </div>

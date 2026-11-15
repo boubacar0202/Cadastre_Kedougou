@@ -1,6 +1,5 @@
 <script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { useForm } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import MazSelect from "maz-ui/components/MazBtn";
 import MazRadio from "maz-ui/components/MazRadio";
@@ -11,6 +10,7 @@ import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import { Inertia } from '@inertiajs/inertia';  
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
+import PageFrame from "@/Components/PageFrame.vue";
 
 defineOptions({ layout: DefaultLayout }); 
 const props = defineProps({
@@ -423,7 +423,7 @@ const submitForm = function () {  // Ajoutez `async` ici
     const today = new Date().toISOString().split('T')[0];
 
     if (form.dt_dateenvoicd > today) {
-        toast.error("La date d'envoi dépasse d'aujourd'hui. CORRIGER");
+        toast.error("La date d'envoi ne peut pas être postérieure à aujourd'hui.");
         return;
     }
     // Formulaire Laravel
@@ -443,276 +443,258 @@ const submitForm = function () {  // Ajoutez `async` ici
 </script>
 
 <template>
-    <Head title="Courrier Départ" />
+    <PageFrame
+        page-title="Courrier Départ"
+        header="Enregistrement des Courriers Départs"
+        banner="Formulaire d'enregistrement des Courriers Départs"
+    >
+        <form @submit.prevent="submitForm">
+            <div class="p-6 rounded-lg">
+                <!-- Section Parcelle --> 
+                <div class="mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2"> 
+                        <BaseInput
+                            class="sm:col-span-2 bg-gray-100 cursor-not-allowed"
+                            id="txt_numdordrecd"
+                            v-model="form.txt_numdordrecd"
+                            label="N° d'ordre"
+                            type="text"
+                            :required="true"
+                            readonly
+                            :disabled="true"
+                            autocomplete="off" 
+                        />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-primary-txt">
-                Enregistrement des Courriers Départs 
-            </h2>
+                        <BaseInput
+                            id="dt_datecouriercd"
+                            v-model="form.dt_datecouriercd"
+                            label="Date Courrier"
+                            type="date"
+                            autocomplete="off"
+                        />
 
-        </template>
+                        <BaseInput
+                            v-if="showBail" 
+                            id="txt_numdossiercd"
+                            v-model="form.txt_numdossiercd"
+                            label="N° Dossier Foncier" 
+                            autocomplete="off"
+                        /> 
 
-        <div class="py-12">
-            <div class="flex justify-center">
-                <div class="w-full max-w-8xl">
-                    <div class="bg-white shadow-md sm:rounded-xl">
-                        <!-- En-tête du formulaire -->
-                        <div class="p-4 border-b bg-primary sm:rounded-t-xl">
-                            <h1 class="text-lg text-white font-semibold">Formulaire d'enregistrement des Courriers Départs</h1>
-                        </div>
-                        <!-- Corps du formulaire -->
-                        <form @submit.prevent="submitForm">
-                            <div class="p-6 rounded-lg">
-                                <!-- Section Parcelle --> 
-                                <div class="mb-6">
-                                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2"> 
-                                        <BaseInput
-                                            class="sm:col-span-2 bg-gray-100 cursor-not-allowed"
-                                            id="txt_numdordrecd"
-                                            v-model="form.txt_numdordrecd"
-                                            label="N° Dordre"
-                                            type="text"
-                                            :required="true"
-                                            readonly
-                                            :disabled="true"
-                                            autocomplete="off" 
-                                        />
+                        <BaseSelect  
+                            v-if="showBail" 
+                            id="txt_avisReponsecd"
+                            v-model="form.txt_avisReponsecd"
+                            label="Avis Réponse" 
+                            :options="[
+                                { value: 'Avis Favorable', label: 'Avis Favorable' },
+                                { value: 'Avis Défavorable', label: 'Avis Défavorable' }, 
+                            ]"
+                        /> 
 
-                                        <BaseInput
-                                            id="dt_datecouriercd"
-                                            v-model="form.dt_datecouriercd"
-                                            label="Date Courrier"
-                                            type="date"
-                                            autocomplete="off"
-                                        />
- 
-                                        <BaseInput
-                                            v-if="showBail" 
-                                            id="txt_numdossiercd"
-                                            v-model="form.txt_numdossiercd"
-                                            label="N° Dossier Foncier" 
-                                            autocomplete="off"
-                                        /> 
- 
-                                        <BaseSelect  
-                                            v-if="showBail" 
-                                            id="txt_avisReponsecd"
-                                            v-model="form.txt_avisReponsecd"
-                                            label="Avis Réponse" 
-                                            :options="[
-                                                { value: 'Avis Favorable', label: 'Avis Favorable' },
-                                                { value: 'Avis Défavorable', label: 'Avis Défavorable' }, 
-                                            ]"
-                                        /> 
-
-                                        <BaseSelect 
-                                            class="sm:col-span-1"
-                                            label="Type de Courriercd"
-                                            name="txt_typecourriercd"  
-                                            required
-                                            v-model="form.txt_typecourriercd"
-                                            :options="[
-                                                { value: 'Individuel', label: 'Individuel' },
-                                                { value: 'BE', label: 'BE' }, 
-                                                { value: 'BE à réponses Multiples', label: 'BE à réponses Multiples' },
-                                            ]"
-                                        />  
-                                    </div>
-                                    <br />
-                                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2"> 
-                                        <BaseSelect
-                                            class="sm:col-span-1"
-                                            id="txt_categoriecd"
-                                            v-model="form.txt_categoriecd"
-                                            label="Catégorie"
-                                            :options="[
-                                                { value: 'Reponse à un Courrier arrivé', label: 'Reponse à un Courrier arrivé' },
-                                                { value: 'Demande', label: 'Demande' },
-                                                { value: 'Transmission de Documents', label: 'Transmission de Documents' },
-                                                { value: 'Information', label: 'Information' },
-                                                { value: 'Alerte', label: 'Alerte' },
-                                                { value: 'Signalement', label: 'Signalement' },
-                                                { value: 'Dossier Retourne', label: 'Dossier Retourné' }
-                                            ]"
-                                            placeholder="Sélectionner une catégorie"
-                                            @change="handleCategorieChangecd"
-                                        /> 
-
-                                        <BaseSelect
-                                            v-if="showcd"
-                                            id="txt_referencecourierarriveecd"
-                                            v-model="form.txt_referencecourierarriveecd"
-                                            label="Ref.Courrier Arrivée à Repondre"
-                                            :options="references.map(ref => ({ value: ref, label: ref }))"
-                                            placeholder="Choisir une référence"
-                                        /> 
-
-                                        <BaseInput
-                                            id="txt_nombrepiececd"
-                                            v-model="form.txt_nombrepiececd"
-                                            label="Nbre de pièces"
-                                            type="text"
-                                            :required="true"
-                                            autocomplete="off"
-                                            min="1"
-                                        />
-
-                                        <BaseInput
-                                            class="sm:col-span-2"
-                                            id="txt_referencecd"
-                                            v-model="form.txt_referencecd"
-                                            label="Référence Courrier"
-                                            type="text"
-                                            :required="true"
-                                            autocomplete="off"
-                                        /> 
-
-                                        <BaseInput  
-                                            v-if="showBail" 
-                                            class="sm:col-span-1"
-                                            label="Prénom et Nom"
-                                            name="txt_prenomNomcd"  
-                                            autocomplete="off"  
-                                            v-model="form.txt_prenomNomcd"
-                                        />   
-
-                                        <BaseInput  
-                                            v-if="showBail" 
-                                            class="sm:col-span-1"
-                                            label="N° Lot"
-                                            name="txt_numLotcd"  
-                                            autocomplete="off"  
-                                            v-model="form.txt_numLotcd"
-                                        />  
-
-                                        <BaseInput  
-                                            v-if="showBail" 
-                                            class="sm:col-span-1"
-                                            label="Superficie (m²)"
-                                            name="txt_superficiecd"  
-                                            autocomplete="off"  
-                                            v-model="form.txt_superficiecd"
-                                        />   
-
-                                        <BaseInput  
-                                            v-if="showBail" 
-                                            class="sm:col-span-1"
-                                            label="N° Titre Mère"
-                                            name="txt_numTFcd"  
-                                            autocomplete="off"  
-                                            v-model="form.txt_numTFcd"
-                                        />   
-
-                                        <BaseInput  
-                                            v-if="showBail" 
-                                            class="sm:col-span-2"
-                                            label="Lotissement"
-                                            name="txt_lotissementcd"  
-                                            autocomplete="on"  
-                                            v-model="form.txt_lotissementcd"
-                                        />    
-
-                                        <BaseInput
-                                            class="sm:col-span-2"
-                                            id="txt_objetcd"
-                                            v-model="form.txt_objetcd"
-                                            label="Objet"
-                                            type="text" 
-                                            autocomplete="address-level2"
-                                        /> 
-
-                                        <BaseInput
-                                            class="sm:col-span-2"
-                                            id="txt_destinatairecd"
-                                            v-model="form.txt_destinatairecd"
-                                            label="Destinataire"
-                                            type="text" 
-                                            autocomplete="off"
-                                        /> 
-
-                                        <BaseInput
-                                            class="sm:col-span-2"
-                                            id="txt_referencereceptioncd"
-                                            v-model="form.txt_referencereceptioncd"
-                                            label="Ref. Décharge"
-                                            type="text"
-                                            autocomplete="off"
-                                        />
-
-                                        <BaseInput
-                                            id="dt_dateenvoicd"
-                                            v-model="form.dt_dateenvoicd"
-                                            label="Date d'envoi"
-                                            type="date"
-                                            :required="true"
-                                            autocomplete="off"
-                                        /> 
-
-                                        <BaseInput 
-                                            v-if="showcd"
-                                            id="txt_dureetraitementcd"
-                                            v-model="form.txt_dureetraitementcd"
-                                            label="Durrée de traitement"
-                                            type="text"
-                                            autocomplete="off"
-                                            :disabled="true"
-                                        /> 
-
-                                        <BaseSelect
-                                            class="sm:col-span-2"
-                                            id="txt_caracterecd"
-                                            v-model="form.txt_caracterecd"
-                                            label="Caractères"
-                                            :options="[
-                                                { value: 'Connfidentiel', label: 'Confidentiel' },
-                                                { value: 'Urgent', label: 'Urgent' },
-                                                { value: 'Secret', label: 'Secret' }
-                                            ]"
-                                            placeholder="Sélectionner un caractère"
-                                        /> 
-
-                                        <BaseInput
-                                            class="sm:col-span-2"
-                                            id="txt_observationcd"
-                                            v-model="form.txt_observationcd"
-                                            label="Observation"
-                                            type="text"
-                                            autocomplete="off"
-                                        /> 
-                             
-                                        <BaseInput 
-                                            type="file"
-                                            accept="application/pdf"
-                                            class="sm:col-span-2"
-                                            label="Importer le Fichier PDF" 
-                                            name="fichier_PDFcd" 
-                                            @change="handleFileUploadcd" 
-                                        /> 
- 
-                                    </div>
-                                    <br /> 
-                                </div> 
- 
-                                <!-- Bouton de soumission -->
-                                <div class="sm:col-span-6 flex justify-center">
-                                    <MazBtn 
-                                        type="submit" no-shadow no-hover-effect
-                                        class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark 
-                                            to-primary hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
-                                            focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 
-                                            dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 
-                                            py-2.5 text-center me-2 mb-2"
-                                        size="medium"
-                                    >
-                                        Enregistrer
-                                    </MazBtn>
-                                </div>
-                            </div>
-                        </form>
+                        <BaseSelect 
+                            class="sm:col-span-1"
+                            label="Type de Courriercd"
+                            name="txt_typecourriercd"  
+                            required
+                            v-model="form.txt_typecourriercd"
+                            :options="[
+                                { value: 'Individuel', label: 'Individuel' },
+                                { value: 'BE', label: 'BE' }, 
+                                { value: 'BE à réponses Multiples', label: 'BE à réponses Multiples' },
+                            ]"
+                        />  
                     </div>
+                    <br />
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2"> 
+                        <BaseSelect
+                            class="sm:col-span-1"
+                            id="txt_categoriecd"
+                            v-model="form.txt_categoriecd"
+                            label="Catégorie"
+                            :options="[
+                                { value: 'Reponse à un Courrier arrivé', label: 'Reponse à un Courrier arrivé' },
+                                { value: 'Demande', label: 'Demande' },
+                                { value: 'Transmission de Documents', label: 'Transmission de Documents' },
+                                { value: 'Information', label: 'Information' },
+                                { value: 'Alerte', label: 'Alerte' },
+                                { value: 'Signalement', label: 'Signalement' },
+                                { value: 'Dossier Retourne', label: 'Dossier Retourné' }
+                            ]"
+                            placeholder="Sélectionner une catégorie"
+                            @change="handleCategorieChangecd"
+                        /> 
+
+                        <BaseSelect
+                            v-if="showcd"
+                            id="txt_referencecourierarriveecd"
+                            v-model="form.txt_referencecourierarriveecd"
+                            label="Ref.Courrier Arrivée à Repondre"
+                            :options="references.map(ref => ({ value: ref, label: ref }))"
+                            placeholder="Choisir une référence"
+                        /> 
+
+                        <BaseInput
+                            id="txt_nombrepiececd"
+                            v-model="form.txt_nombrepiececd"
+                            label="Nbre de pièces"
+                            type="text"
+                            :required="true"
+                            autocomplete="off"
+                            min="1"
+                        />
+
+                        <BaseInput
+                            class="sm:col-span-2"
+                            id="txt_referencecd"
+                            v-model="form.txt_referencecd"
+                            label="Référence Courrier"
+                            type="text"
+                            :required="true"
+                            autocomplete="off"
+                        /> 
+
+                        <BaseInput  
+                            v-if="showBail" 
+                            class="sm:col-span-1"
+                            label="Prénom et Nom"
+                            name="txt_prenomNomcd"  
+                            autocomplete="off"  
+                            v-model="form.txt_prenomNomcd"
+                        />   
+
+                        <BaseInput  
+                            v-if="showBail" 
+                            class="sm:col-span-1"
+                            label="N° Lot"
+                            name="txt_numLotcd"  
+                            autocomplete="off"  
+                            v-model="form.txt_numLotcd"
+                        />  
+
+                        <BaseInput  
+                            v-if="showBail" 
+                            class="sm:col-span-1"
+                            label="Superficie (m²)"
+                            name="txt_superficiecd"  
+                            autocomplete="off"  
+                            v-model="form.txt_superficiecd"
+                        />   
+
+                        <BaseInput  
+                            v-if="showBail" 
+                            class="sm:col-span-1"
+                            label="N° Titre Mère"
+                            name="txt_numTFcd"  
+                            autocomplete="off"  
+                            v-model="form.txt_numTFcd"
+                        />   
+
+                        <BaseInput  
+                            v-if="showBail" 
+                            class="sm:col-span-2"
+                            label="Lotissement"
+                            name="txt_lotissementcd"  
+                            autocomplete="on"  
+                            v-model="form.txt_lotissementcd"
+                        />    
+
+                        <BaseInput
+                            class="sm:col-span-2"
+                            id="txt_objetcd"
+                            v-model="form.txt_objetcd"
+                            label="Objet"
+                            type="text" 
+                            autocomplete="address-level2"
+                        /> 
+
+                        <BaseInput
+                            class="sm:col-span-2"
+                            id="txt_destinatairecd"
+                            v-model="form.txt_destinatairecd"
+                            label="Destinataire"
+                            type="text" 
+                            autocomplete="off"
+                        /> 
+
+                        <BaseInput
+                            class="sm:col-span-2"
+                            id="txt_referencereceptioncd"
+                            v-model="form.txt_referencereceptioncd"
+                            label="Ref. Décharge"
+                            type="text"
+                            autocomplete="off"
+                        />
+
+                        <BaseInput
+                            id="dt_dateenvoicd"
+                            v-model="form.dt_dateenvoicd"
+                            label="Date d'envoi"
+                            type="date"
+                            :required="true"
+                            autocomplete="off"
+                        /> 
+
+                        <BaseInput 
+                            v-if="showcd"
+                            id="txt_dureetraitementcd"
+                            v-model="form.txt_dureetraitementcd"
+                            label="Durrée de traitement"
+                            type="text"
+                            autocomplete="off"
+                            :disabled="true"
+                        /> 
+
+                        <BaseSelect
+                            class="sm:col-span-2"
+                            id="txt_caracterecd"
+                            v-model="form.txt_caracterecd"
+                            label="Caractères"
+                            :options="[
+                                { value: 'Connfidentiel', label: 'Confidentiel' },
+                                { value: 'Urgent', label: 'Urgent' },
+                                { value: 'Secret', label: 'Secret' }
+                            ]"
+                            placeholder="Sélectionner un caractère"
+                        /> 
+
+                        <BaseInput
+                            class="sm:col-span-2"
+                            id="txt_observationcd"
+                            v-model="form.txt_observationcd"
+                            label="Observation"
+                            type="text"
+                            autocomplete="off"
+                        /> 
+                
+                        <BaseInput 
+                            type="file"
+                            accept="application/pdf"
+                            class="sm:col-span-2"
+                            label="Importer le Fichier PDF" 
+                            name="fichier_PDFcd" 
+                            @change="handleFileUploadcd" 
+                        /> 
+
+                    </div>
+                    <br /> 
+                </div> 
+
+                <!-- Bouton de soumission -->
+                <div class="sm:col-span-6 flex justify-center">
+                    <MazBtn 
+                        type="submit" no-shadow no-hover-effect
+                        class="w-64 h-10 text-white bg-gradient-to-r from-primary via-primary-dark 
+                            to-primary hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
+                            focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 
+                            dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 
+                            py-2.5 text-center me-2 mb-2"
+                        size="medium"
+                    >
+                        Enregistrer
+                    </MazBtn>
                 </div>
             </div>
-        </div>
-    </AuthenticatedLayout>
+        </form>
+    </PageFrame>
 </template>

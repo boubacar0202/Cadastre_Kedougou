@@ -1,0 +1,31 @@
+---
+description: Métier du cadastre de Kédougou — parcours, droits, identifiants
+alwaysApply: true
+---
+
+# Métier Cadastre Kédougou
+
+L’architecture cible est dans `AGENTS.md`. Cette règle décrit le comportement actuel.
+
+## Parcours
+
+- Le secrétariat (`secretariat.store`) crée dossier, référence cadastrale, titulaire et terrain, puis appelle `AttributionDossierService::attribuer` : statut `attribue`, échéance 10 jours, agent validé (`is_validated`).
+- L’admin réattribue un dossier encore `attribue`. Il attribue aussi une arrivée ou un départ (`traitementDossier.store`). L’agent désigné valide par preuve NICAD ou courrier (5 essais, verrouillage) : statut `traite`. L’admin signe (`signe`) ou annule la signature (retour à `traite`).
+- Le géomètre, la mutation, la matrice, le plan (shapefiles) et les barèmes sont des modules séparés. Le géomètre écrit les évaluations sans changer le statut d’attribution.
+- Pages de traitement : `resources/js/Pages/traitementDissier`. Noms de routes : `traitementDossier.*`.
+
+## Droits
+
+- Rôles stockés : `admin`, `user`. Une route `role:admin` renvoie un non-admin au tableau de bord avec le flash `error`.
+- Tout utilisateur connecté peut secrétariat, géomètre, mutation, courrier et plan. Seul l’agent assigné valide ; la fiche est visible par cet agent ou un admin.
+- `User::estProtege()` interdit la modification et la suppression de ce compte. Ne pas recopier son e-mail ni son id dans le code ou les logs.
+
+## Identifiants
+
+Vérifier avant écriture, ne pas recalculer en silence : NICAD (`terrains.txt_nicad`), `txt_num_dossier`, `txt_num_dordre`, référence cadastrale, numéros d’ordre et références du courrier. Mots de passe et codes d’accès hashés : jamais au front, jamais dans les logs.
+
+## Écart à combler au fil de l’eau
+
+Les contrôleurs valident, interrogent et souvent transactionnent encore eux-mêmes. `app/Repositories` est vide. `preventLazyLoading` n’est pas activé. `AttributionDossierService` est le service branché. `DossierService::createDossier` n’est appelé par personne.
+
+En modifiant un contrôleur, extraire seulement le flux touché : Form Request, service, repository. Pas de réécriture globale. Pas de `migrate:fresh`.

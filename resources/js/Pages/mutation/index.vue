@@ -1,9 +1,8 @@
 <script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
-import { Head } from "@inertiajs/vue3"; 
-import MazBtn from "maz-ui/components/MazBtn";  
 import DeleteModal from "@/Components/DeleteModal.vue";
-import { Link } from '@inertiajs/vue3'; 
+import PageFrame from "@/Components/PageFrame.vue";
+import BoutonModifier from "@/Components/BoutonModifier.vue";
+import BoutonSupprimer from "@/Components/BoutonSupprimer.vue"; 
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
 import DefaultLayout from "@/Layouts/DefaultLayout.vue";
@@ -144,25 +143,11 @@ const confirmerSuppression = async ({ deleteCode, adminCode } = {}) => {
 </script>
  
 <template>
-  <Head title="Mutations" />
-
-  <AuthenticatedLayout>
-    <template #header>
-      <h2 class="text-xl font-semibold leading-tight text-primary-txt">
-        Liste des Mutations
-      </h2>
-    </template>
-
-    <div class="py-12">
-      <div class="flex justify-center">
-        <div class="w-full max-w-8xl">
-          <div class="bg-white shadow-md rounded-xl">
-            <div class="p-4 border-b bg-primary sm:rounded-t-xl">
-              <h1 class="text-lg text-white font-semibold">
-                Liste des Mutations
-              </h1>
-            </div>
-
+  <PageFrame
+    page-title="Mutations"
+    header="Liste des Mutations"
+    banner="Liste des Mutations"
+  >
             <!-- MODAL DE SUPPRESSION -->
             <DeleteModal
               :show="showDeleteModal"
@@ -271,25 +256,11 @@ const confirmerSuppression = async ({ deleteCode, adminCode } = {}) => {
                       </td>
 
                       <!-- Actions -->
-                      <td class="border px-2 py-1 flex justify-center gap-2">
-                        <Link :href="`/parametre/mutationEdit/${mutation.id}`">
-                          <MazBtn
-                            size="sm"
-                            class="h-8 w-6 text-white bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
-                          >
-                            ✏️
-                          </MazBtn>
-                        </Link>
-
-                        <MazBtn
-                          size="sm"
-                          color="danger"
-                          @click="() => supprimerMutation(mutation)"
-                          :disabled="loadingDelete"
-                          class="h-8 w-6 text-white bg-gradient-to-r from-danger-500 via-danger-600 to-danger-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2.5"
-                        >
-                          🗑 
-                        </MazBtn>
+                      <td class="border px-2 py-1">
+                        <div class="flex justify-center gap-2">
+                          <BoutonModifier :href="`/parametre/mutationEdit/${mutation.id}`" />
+                          <BoutonSupprimer :disabled="loadingDelete" @click="supprimerMutation(mutation)" />
+                        </div>
                       </td>
                     </tr>
 
@@ -303,10 +274,6 @@ const confirmerSuppression = async ({ deleteCode, adminCode } = {}) => {
                 </table>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </AuthenticatedLayout>
+  </PageFrame>
 </template>
  

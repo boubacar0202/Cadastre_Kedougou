@@ -1,12 +1,13 @@
 <script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm, router } from "@inertiajs/vue3";
+import { useForm, router } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
+import BoutonSupprimer from "@/Components/BoutonSupprimer.vue";
 import { ref, watch, watchEffect, computed } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";  
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
+import PageFrame from "@/Components/PageFrame.vue";
 
 // Props avec valeurs par défaut
 const props = defineProps({
@@ -454,25 +455,11 @@ async function submit() {
 </script>
 
 <template>
-    <Head title="Courrier Départ" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl text-primary-txt font-semibold leading-tight">
-                Modification Courrier Départ
-            </h2>
-        </template>
-
-        <div class="py-12">
-            <div class="flex justify-center">
-                <div class="w-full max-w-8xl">
-                    <div class="bg-white shadow-md rounded-xl">
-                        <div class="p-4 border-b bg-primary sm:rounded-t-xl">
-                            <h1 class="text-lg text-white font-semibold">
-                                Formulaire de Modification des Courriers Départs
-                            </h1>
-                        </div>
-                        
+    <PageFrame
+        page-title="Courrier Départ"
+        header="Modification Courrier Départ"
+        banner="Formulaire de Modification des Courriers Départs"
+    >
                         <form @submit.prevent="submit">
                             <div class="p-6">
                                 <h5 class="text-lg text-primary-txt font-bold">
@@ -484,7 +471,7 @@ async function submit() {
                                 <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                                     <BaseInput  
                                         class="sm:col-span-1"
-                                        label="N° Dordre depart"
+                                        label="N° d'ordre départ"
                                         name="txt_numdordrecd"  
                                         autocomplete="off"  
                                         v-model="form.txt_numdordrecd" 
@@ -704,13 +691,7 @@ async function submit() {
                                             >
                                                 📄 Voir le PDF
                                             </a>
-                                            <button 
-                                                @click="deleteFile(departs)" 
-                                                class="text-red-600 text-sm hover:text-red-800"
-                                                type="button"
-                                            >
-                                                🗑️ Supprimer
-                                            </button>
+                                            <BoutonSupprimer @click="deleteFile(departs)" />
                                         </div>
                                     </div>
 
@@ -746,9 +727,5 @@ async function submit() {
                                 </div>
                             </div>
                         </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </AuthenticatedLayout>
+    </PageFrame>
 </template>

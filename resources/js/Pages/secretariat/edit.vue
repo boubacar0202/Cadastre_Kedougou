@@ -1982,8 +1982,8 @@ async function submit() {
 .sec-form h5,
 .sec-form h6 {
   margin: 1.6rem 0 0.8rem;
-  padding-left: 0.75rem;
-  border-left: 4px solid #a35200;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #ead8c4;
   color: #613104;
   font-size: 1.05rem;
   font-weight: 700;

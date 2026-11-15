@@ -22,22 +22,18 @@ const services = [
     {
         title: 'Dossiers',
         text: 'Enregistrement et suivi des dossiers cadastraux du centre.',
-        icon: 'M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1zm7 0v4h4',
     },
     {
         title: 'Courriers',
         text: 'Arrivées, départs et courriers encore en instance.',
-        icon: 'M4 6.5h16v11H4v-11zm0 0 8 6 8-6',
     },
     {
         title: 'Matrice',
         text: 'Parcelles, NICAD, lotissements et mutations.',
-        icon: 'M4 4.5h7v7H4v-7zm9 0h7v7h-7v-7zM4 13.5h7v7H4v-7zm9 0h7v7h-7v-7z',
     },
     {
         title: 'Plans',
         text: 'Consultation cartographique et points densifiés.',
-        icon: 'M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10zm0-7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
     },
 ];
 </script>
@@ -88,14 +84,11 @@ const services = [
         <main>
             <section class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-2 lg:py-16">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary-menu">
-                        Centre des services fiscaux de Kédougou
-                    </p>
-                    <h1 class="mt-3 text-5xl font-bold leading-tight text-primary sm:text-5xl">
+                    <h1 class="text-4xl font-bold leading-tight tracking-tight text-primary sm:text-5xl">
                         Cadastre de Kédougou
                     </h1>
                     <p class="mt-4 max-w-xl text-base leading-relaxed">
-                        Programme de gestion de la base de données MB-1. Enregistrez les dossiers,
+                        Centre des services fiscaux de Kédougou. Programme de gestion de la base de données MB-1. Enregistrez les dossiers,
                         suivez les courriers et consultez la matrice cadastrale ainsi que les plans.
                     </p>
 
@@ -122,26 +115,13 @@ const services = [
             </section>
 
             <section class="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-primary">Services disponibles</h2>
-                    <p class="mt-1 text-sm">Les principaux modules de l'application.</p>
-                </div>
-
-                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <article
-                        v-for="service in services"
-                        :key="service.title"
-                        class="rounded-2xl border border-primary-only bg-white p-5 shadow-[0_12px_30px_rgba(97,49,4,0.06)]"
-                    >
-                        <span class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary-form text-primary">
-                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" :d="service.icon" />
-                            </svg>
-                        </span>
+                <h2 class="text-2xl font-bold tracking-tight text-primary">Services disponibles</h2>
+                <ul class="mt-8 grid gap-x-12 gap-y-8 sm:grid-cols-2">
+                    <li v-for="service in services" :key="service.title">
                         <h3 class="text-lg font-semibold text-primary">{{ service.title }}</h3>
-                        <p class="mt-2 text-sm leading-relaxed">{{ service.text }}</p>
-                    </article>
-                </div>
+                        <p class="mt-1 max-w-md text-sm leading-relaxed">{{ service.text }}</p>
+                    </li>
+                </ul>
             </section>
         </main>
 

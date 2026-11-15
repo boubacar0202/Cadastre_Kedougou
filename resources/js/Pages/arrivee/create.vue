@@ -301,7 +301,7 @@ const submitForm = function () {
                                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2">
                                         <BaseInput
                                             class="sm:col-span-1"
-                                            label="N° Dordre Arrivée"
+                                            label="N° d'ordre arrivée"
                                             name="txt_numdordre"
                                             autocomplete="on"
                                             v-model="form.txt_numdordre"

@@ -1,7 +1,7 @@
 <script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import DefaultLayout from "@/Layouts/DefaultLayout.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { useForm } from "@inertiajs/vue3";
+import PageFrame from "@/Components/PageFrame.vue";
 import MazBtn from "maz-ui/components/MazBtn";
 import { toast } from "@/Components/AppToast";
 import BaseInput from "@/Components/BaseInput.vue";
@@ -56,28 +56,11 @@ const submitForm = () => {
 </script>
 
 <template>
-    <Head title="Modifier Utilisateur" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-primary-txt">
-                Modifier un Utilisateur
-            </h2>
-        </template>
-
-        <div class="py-12">
-            <div class="flex justify-center">
-                <div class="w-full max-w-8xl">
-                    <div class="bg-white shadow-md rounded-xl">
-                        
-                        <!-- En-tête -->
-                        <div class="p-4 border-b bg-primary rounded-t-xl">
-                            <h1 class="text-lg text-white font-semibold">
-                                Modification de l'Utilisateur
-                            </h1>
-                        </div>
-
-                        <!-- Formulaire -->
+    <PageFrame
+        page-title="Modifier Utilisateur"
+        header="Modifier un Utilisateur"
+        banner="Modification de l'Utilisateur"
+    >
                         <form @submit.prevent="submitForm">
                             <div class="p-6">
 
@@ -175,11 +158,6 @@ const submitForm = () => {
 
                             </div>
                         </form>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </AuthenticatedLayout>
+    </PageFrame>
 </template>
 

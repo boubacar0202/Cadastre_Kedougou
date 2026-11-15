@@ -6,6 +6,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import BaseInput from '@/Components/BaseInput.vue';
 import BaseSelect from '@/Components/BaseSelect.vue';
 import DeleteModal from '@/Components/DeleteModal.vue';
+import BoutonModifier from '@/Components/BoutonModifier.vue';
+import BoutonSupprimer from '@/Components/BoutonSupprimer.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue';
 import L from 'leaflet';
@@ -13,6 +15,8 @@ import 'leaflet/dist/leaflet.css';
 import proj4 from 'proj4';
 import { toast } from "@/Components/AppToast";
 import * as turf from '@turf/turf';
+import ExtraitPlanApercu from '@/Components/ExtraitPlanApercu.vue';
+import { anneauPrincipal, blocageExtrait, commandesExtrait, nomFichierExtrait, porteeSituation } from '@/utils/extraitPlan';
 import axios from 'axios';
 import { usePage } from '@inertiajs/vue3';
 
@@ -75,6 +79,13 @@ const sections = ref([]);
 const sectionPoints = ref([]);
 const parcellePoints = ref([]);
 const selectedInfo = ref(null);
+const erreurExtrait = ref('');
+const extraitEnCours = ref(false);
+const extraitOuvert = ref(null);
+const choixEchelleOuvert = ref(false);
+const echelleSituationChoisie = ref(2000);
+const echelleParcelleChoisie = ref(500);
+const bureauExtrait = { nom: 'Kédougou', ville: 'Kédougou' };
 const showInfo = ref(false);
 
 const pointsDensifies = ref([]);
@@ -139,6 +150,7 @@ const COULEURS_FORTES = {
     limite_parcelle: '#052e16',
     numero_section: '#7c2d12',
     numero_parcelle: '#052e16',
+    numero_lot: '#052e16',
 };
 const TYPES_ENTITE = [
     { value: 'limite_region', label: 'Limite Région', ordre: 1, fill: 0.16, weight: 2 },
@@ -149,6 +161,7 @@ const TYPES_ENTITE = [
     { value: 'limite_parcelle', label: 'Limite Parcelle', ordre: 6, fill: 0.32, weight: 1.5 },
     { value: 'numero_section', label: 'Numéro Section', ordre: 7, fill: 0, weight: 1.2 },
     { value: 'numero_parcelle', label: 'Numéro Parcelle', ordre: 8, fill: 0, weight: 1.2 },
+    { value: 'numero_lot', label: 'Numéro Lot', ordre: 9, fill: 0, weight: 1.2 },
 ];
 const optionsTypeEntite = TYPES_ENTITE.map(({ value, label }) => ({ value, label }));
 const LIBELLES_CHAMPS_QGIS = {
@@ -1157,6 +1170,7 @@ function zoomSurEntite(feature) {
 
 function selectionnerShapefile(shp, feature = null, index = null, couche = null) {
     resetParcelleSelection();
+    erreurExtrait.value = '';
     selectedPointId.value = null;
 
     const sauve = shp?.verification?.type === 'parcelle' ? shp.verification : null;
@@ -1334,6 +1348,210 @@ function ficheParcelleEnregistree(verification) {
         slt_service_rendu: '',
         txt_etat_cession: '',
     };
+}
+
+function memeGeometrie(a, b) {
+    if (a === b) return true;
+    try {
+        return turf.distance(turf.centroid(a), turf.centroid(b), { units: 'meters' }) < 0.4;
+    } catch (e) {
+        return false;
+    }
+}
+
+async function limitesSectionAutour(polygone) {
+    let zone = null;
+    try {
+        zone = turf.buffer(polygone, 80, { units: 'meters' });
+    } catch (e) {
+        zone = null;
+    }
+    const couches = await lireCouches('limite_section');
+    const lignes = [];
+    couches.forEach((feature) => {
+        let proche = !zone;
+        if (zone) {
+            try {
+                proche = turf.booleanIntersects(zone, feature);
+            } catch (e) {
+                proche = false;
+            }
+        }
+        if (!proche) return;
+        const geometry = feature?.geometry;
+        const anneaux = geometry?.type === 'LineString' ? [geometry.coordinates]
+            : geometry?.type === 'MultiLineString' ? geometry.coordinates
+                : geometry?.type === 'Polygon' ? geometry.coordinates
+                    : geometry?.type === 'MultiPolygon' ? geometry.coordinates.flat()
+                        : [];
+        anneaux.forEach((anneau) => {
+            if (anneau.length >= 2) {
+                lignes.push(anneau.map(([lng, lat]) => ({ lng: Number(lng), lat: Number(lat) })));
+            }
+        });
+    });
+    return lignes;
+}
+
+async function parcellesAutour(polygone, echelleSituation = 2000) {
+    const parcelles = await lireCouches('limite_parcelle');
+    const numeros = await lireCouches('numero_parcelle');
+    const sections = await lireCouches('limite_section');
+    const numerosSection = await lireCouches('numero_section');
+    let zone = null;
+    try {
+        zone = turf.buffer(polygone, porteeSituation(echelleSituation), { units: 'meters' });
+    } catch (e) {
+        zone = null;
+    }
+    const autres = parcelles.filter((item) => estPolygone(item) && !memeGeometrie(polygone, item));
+    let limites = null;
+    if (zone) {
+        try {
+            limites = turf.bbox(zone);
+        } catch (e) {
+            limites = null;
+        }
+    }
+    const proches = autres.filter((item) => {
+        if (!limites) return false;
+        const boite = boiteFeature(item);
+        if (!boite || boite[2] < limites[0] || boite[0] > limites[2] || boite[3] < limites[1] || boite[1] > limites[3]) {
+            return false;
+        }
+        try {
+            return turf.booleanIntersects(zone, item);
+        } catch (e) {
+            return false;
+        }
+    });
+    let tampon = null;
+    try {
+        tampon = turf.buffer(polygone, 1.5, { units: 'meters' });
+    } catch (e) {
+        tampon = null;
+    }
+    const demandes = proches.map((feature) => {
+        let touche = false;
+        try {
+            touche = !!tampon && turf.booleanIntersects(tampon, feature);
+        } catch (e) {
+            touche = false;
+        }
+        if (!touche) {
+            return { feature, section: '', parcelle: '', lotissement: '', touche };
+        }
+        const pointNumero = numeros.find((point) => pointDansPolygone(point, feature)) || null;
+        const sectionPoly = sectionContenant(feature, sections);
+        return {
+            feature,
+            section: sectionPoly ? numeroDans(sectionPoly, numerosSection, 3) : '',
+            parcelle: chiffresCadastre(texteAttribut(pointNumero), 5),
+            lotissement: coucheAttribut(feature),
+            touche,
+        };
+    });
+    const consultables = demandes.filter((item) => item.touche && item.section && item.parcelle);
+    const lots = new Map();
+    if (consultables.length) {
+        const resultats = await consulterBase(consultables.map(({ section, parcelle, lotissement }) => ({
+            section,
+            parcelle,
+            lotissement,
+        })));
+        resultats.forEach((resultat) => {
+            lots.set(`${resultat.section}|${resultat.parcelle}`, {
+                lot: resultat?.terrain?.txt_num_lotissement || '',
+                titre: resultat?.terrain?.txt_num_titre || '',
+            });
+        });
+    }
+    return demandes.map((demande) => {
+        return {
+            ring: anneauPrincipal(demande.feature),
+            lot: lots.get(`${demande.section}|${demande.parcelle}`)?.lot || '',
+            titre: lots.get(`${demande.section}|${demande.parcelle}`)?.titre || '',
+            touche: demande.touche,
+        };
+    }).filter((item) => item.ring.length >= 3);
+}
+
+async function polygoneSelectionne() {
+    const feature = selectedInfo.value?.feature;
+    if (estPolygone(feature)) return feature;
+    if (!feature) return null;
+    const parcelles = await lireCouches('limite_parcelle');
+    return polygoneContenantPoint(feature, parcelles);
+}
+
+async function ouvrirExtraitPlan() {
+    erreurExtrait.value = '';
+    if (!selectedInfo.value?.feature) {
+        erreurExtrait.value = 'Cette parcelle n’a pas de géométrie.';
+        return;
+    }
+    echelleSituationChoisie.value = 2000;
+    echelleParcelleChoisie.value = 500;
+    choixEchelleOuvert.value = true;
+}
+
+async function validerEchelles() {
+    choixEchelleOuvert.value = false;
+    erreurExtrait.value = '';
+    extraitEnCours.value = true;
+    try {
+        const polygone = await polygoneSelectionne();
+        const message = blocageExtrait(selectedInfo.value?.data, estPolygone(polygone));
+        if (message) {
+            erreurExtrait.value = message;
+            return;
+        }
+        const data = selectedInfo.value?.data || {};
+        const info = selectedInfo.value?.identification || {};
+        const section = [info.nomSection, info.section].filter(Boolean).join(' · ') || selectedInfo.value?.section || '';
+        const surfaceSaisie = Number(String(data.nbr_surface ?? '').replace(',', '.'));
+        const superficieM2 = Number.isFinite(surfaceSaisie) && surfaceSaisie > 0
+            ? surfaceSaisie
+            : surfaceM2(polygone);
+        const commandes = commandesExtrait({
+            bureau: bureauExtrait.nom,
+            ville: bureauExtrait.ville,
+            infos: {
+                region: data.region,
+                departement: data.departement,
+                arrondissement: data.arrondissement,
+                commune: data.commune,
+                requerant: data.titulaire,
+                titre: data.txt_num_titre,
+                titreMere: data.txt_titre_mere,
+                lot: data.txt_num_lotissement,
+                lotissement: data.txt_lotissement,
+                nicad: data.txt_nicad,
+                livre: data.livre_foncier,
+                requisition: data.requisition,
+                section,
+                dossier: data.txt_num_dossier,
+                anneeDossier: data.dt_date_creation,
+            },
+            sujet: anneauPrincipal(polygone),
+            parcelles: await parcellesAutour(polygone, echelleSituationChoisie.value),
+            sections: await limitesSectionAutour(polygone),
+            superficieM2,
+            echelles: {
+                situation: echelleSituationChoisie.value,
+                parcelle: echelleParcelleChoisie.value,
+            },
+        });
+        if (!commandes) {
+            erreurExtrait.value = 'Cette parcelle n’a pas de géométrie.';
+            return;
+        }
+        extraitOuvert.value = { commandes, fichier: nomFichierExtrait(data) };
+    } catch (e) {
+        erreurExtrait.value = 'Impossible de préparer l’extrait de plan.';
+    } finally {
+        extraitEnCours.value = false;
+    }
 }
 
 // ============================================================
@@ -1545,8 +1763,14 @@ function polygoneContenantPoint(pointFeature, polygones) {
 }
 
 async function consulterBase(parcelles) {
-    const { data } = await axios.post('/api/plan/parcelles', { parcelles });
-    return data.resultats || [];
+    const resultats = [];
+    for (let index = 0; index < parcelles.length; index += 500) {
+        const { data } = await axios.post('/api/plan/parcelles', {
+            parcelles: parcelles.slice(index, index + 500),
+        });
+        resultats.push(...(data.resultats || []));
+    }
+    return resultats;
 }
 
 async function identifierGeometrie(feature, type) {
@@ -1616,11 +1840,19 @@ async function identifierSelection(shp, feature, jeton) {
                 nbr_surface: terrain?.nbr_surface || '',
                 txt_num_lotissement: terrain?.txt_num_lotissement || '',
                 txt_lotissement: terrain?.txt_lotissement || lecture.lotissement || sauve?.lotissement || '',
+                txt_num_titre: terrain?.txt_num_titre || '',
+                txt_titre_mere: terrain?.txt_titre_mere || '',
+                region: terrain?.region || '',
+                departement: terrain?.departement || '',
+                arrondissement: terrain?.arrondissement || '',
+                livre_foncier: terrain?.livre_foncier || '',
+                requisition: terrain?.requisition || '',
                 titulaire: terrain?.titulaire || '',
                 commune: terrain?.commune || '',
                 suffixe: lecture.suffixe || base?.suffixe || sauve?.suffixe || '',
                 slt_service_rendu: dossier?.slt_service_rendu || '',
                 txt_etat_cession: dossier?.txt_etat_cession || '',
+                dt_date_creation: dossier?.dt_date_creation || '',
             } : selectedInfo.value.data,
             identification: {
                 chargement: false,
@@ -2415,7 +2647,7 @@ onBeforeUnmount(() => {
                                     </div>
                                 </div>
                                 <span v-if="point.txt_documentsAfferants" class="text-xs text-green-500" title="PDF disponible">📄</span>
-                                <button type="button" @click.stop="demanderSuppression('point', point)" class="p-1 text-red-600 rounded-lg hover:bg-red-50" title="Supprimer">🗑</button>
+                                <BoutonSupprimer @click.stop="demanderSuppression('point', point)" />
                             </div>
                         </div>
                     </div>
@@ -2485,10 +2717,9 @@ onBeforeUnmount(() => {
                                     </svg>
                                     Localiser
                                 </button>
-                                <button type="button" @click="demanderSuppression('point', selectedInfo.point)"
-                                    class="flex items-center justify-center w-full gap-2 py-2.5 text-sm font-medium text-white transition bg-red-600 rounded-xl shadow-sm hover:bg-red-700">
+                                <BoutonSupprimer class="w-full" size="md" @click="demanderSuppression('point', selectedInfo.point)">
                                     Supprimer ce point
-                                </button>
+                                </BoutonSupprimer>
                             </div>
                         </template>
 
@@ -2560,10 +2791,9 @@ onBeforeUnmount(() => {
                                     class="flex items-center justify-center w-full gap-2 py-2.5 text-sm font-medium text-primary transition bg-white border border-primary-only rounded-xl hover:bg-primary-form">
                                     Table d’attributs
                                 </button>
-                                <button type="button" @click="demanderSuppression('shapefile', selectedInfo.shapefile)"
-                                    class="flex items-center justify-center w-full gap-2 py-2.5 text-sm font-medium text-white transition bg-red-600 rounded-xl shadow-sm hover:bg-red-700">
+                                <BoutonSupprimer class="w-full" size="md" @click="demanderSuppression('shapefile', selectedInfo.shapefile)">
                                     Supprimer ce plan
-                                </button>
+                                </BoutonSupprimer>
                             </div>
                         </template>
 
@@ -2630,14 +2860,18 @@ onBeforeUnmount(() => {
                             </div>
                             <p v-else class="text-sm text-primary-txt/70">Aucune information enregistrée pour cette parcelle.</p>
                             <div class="mt-4 space-y-2">
+                                <button type="button" @click="ouvrirExtraitPlan" :disabled="extraitEnCours || selectedInfo.loading"
+                                    class="flex items-center justify-center w-full gap-2 py-2.5 text-sm font-medium text-white transition bg-primary rounded-xl shadow-sm hover:bg-primary-dark disabled:opacity-60">
+                                    {{ extraitEnCours ? 'Préparation de l’extrait…' : 'Générer extrait de plan' }}
+                                </button>
+                                <p v-if="erreurExtrait" class="text-sm text-red-700">{{ erreurExtrait }}</p>
                                 <button v-if="selectedInfo.feature" type="button" @click="zoomSurEntite(selectedInfo.feature)"
                                     class="flex items-center justify-center w-full gap-2 py-2.5 text-sm font-medium text-white transition bg-primary rounded-xl shadow-sm hover:bg-primary-dark">
                                     Zoomer sur la parcelle
                                 </button>
-                                <button v-if="selectedInfo.shapefile" type="button" @click="demanderSuppression('shapefile', selectedInfo.shapefile)"
-                                    class="flex items-center justify-center w-full gap-2 py-2.5 text-sm font-medium text-white transition bg-red-600 rounded-xl shadow-sm hover:bg-red-700">
+                                <BoutonSupprimer v-if="selectedInfo.shapefile" class="w-full" size="md" @click="demanderSuppression('shapefile', selectedInfo.shapefile)">
                                     Supprimer ce plan
-                                </button>
+                                </BoutonSupprimer>
                             </div>
                         </template>
                     </div>
@@ -2847,9 +3081,9 @@ onBeforeUnmount(() => {
                                             <button type="button" @click="mettreShapefileEnAvant(shp)" class="p-2 rounded-lg transition" :class="featuredShapefileId === shp.id ? 'bg-primary text-white' : 'text-primary hover:bg-primary-form'" title="Mettre en avant">⬆</button>
                                             <button type="button" @click="ouvrirListeEntites(shp)" class="p-2 text-primary rounded-lg hover:bg-primary-form transition" title="Toutes les entités">☰</button>
                                             <button type="button" @click="selectionnerShapefile(shp); closeShapefileModal()" class="p-2 text-primary rounded-lg hover:bg-primary-form transition" title="Informations">ℹ</button>
-                                            <button type="button" @click="editShapefile(shp)" class="p-2 text-primary rounded-lg hover:bg-primary-form transition" title="Modifier">✏️</button>
+                                            <BoutonModifier @click="editShapefile(shp)" />
                                             <button type="button" @click="zoomToShapefile(shp)" class="p-2 text-primary rounded-lg hover:bg-primary-form transition" title="Zoomer">🔍</button>
-                                            <button type="button" @click="demanderSuppression('shapefile', shp)" class="p-2 text-red-600 rounded-lg hover:bg-red-50 transition" title="Supprimer">🗑</button>
+                                            <BoutonSupprimer @click="demanderSuppression('shapefile', shp)" />
                                             <button @click="downloadShapefile(shp)" class="p-2 text-primary rounded-lg hover:bg-primary-form transition">💾</button>
                                         </div>
                                     </div>
@@ -3063,6 +3297,42 @@ onBeforeUnmount(() => {
                 </div>
             </Transition>
         </div>
+
+        <div v-if="choixEchelleOuvert" class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/55 p-4">
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                <h2 class="text-lg font-semibold text-primary-txt">Choisir les échelles</h2>
+                <p class="mt-1 text-sm text-primary-txt/70">Une échelle pour chaque plan, puis validez pour afficher l’extrait.</p>
+                <fieldset class="mt-5">
+                    <legend class="text-sm font-semibold text-primary-txt">Échelle pour plan de situation</legend>
+                    <div class="mt-2 space-y-2">
+                        <label v-for="valeur in [2000, 5000, 10000]" :key="`situation-${valeur}`" class="flex items-center gap-2 text-sm text-primary-txt">
+                            <input v-model="echelleSituationChoisie" type="radio" name="echelle-situation" :value="valeur" class="text-primary">
+                            1/{{ valeur }}
+                        </label>
+                    </div>
+                </fieldset>
+                <fieldset class="mt-5">
+                    <legend class="text-sm font-semibold text-primary-txt">Échelle pour plan parcelle</legend>
+                    <div class="mt-2 space-y-2">
+                        <label v-for="valeur in [200, 500, 1000]" :key="`parcelle-${valeur}`" class="flex items-center gap-2 text-sm text-primary-txt">
+                            <input v-model="echelleParcelleChoisie" type="radio" name="echelle-parcelle" :value="valeur" class="text-primary">
+                            1/{{ valeur }}
+                        </label>
+                    </div>
+                </fieldset>
+                <div class="mt-6 flex items-center justify-end gap-3">
+                    <button type="button" class="px-4 py-2 text-sm font-medium text-primary-txt bg-white border border-primary-only rounded-lg hover:bg-primary-form" @click="choixEchelleOuvert = false">Annuler</button>
+                    <button type="button" class="px-5 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark" @click="validerEchelles">Valider</button>
+                </div>
+            </div>
+        </div>
+
+        <ExtraitPlanApercu
+            v-if="extraitOuvert"
+            :commandes="extraitOuvert.commandes"
+            :fichier="extraitOuvert.fichier"
+            @fermer="extraitOuvert = null"
+        />
 
         <DeleteModal
             :show="showDeleteModal"

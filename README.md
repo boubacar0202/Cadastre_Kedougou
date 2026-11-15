@@ -1,66 +1,183 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Cadastre Kédougou
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Application de gestion cadastrale du service de Kédougou : dossiers, secrétariat, géomètre, mutations, courrier (arrivées et départs), plan (shapefiles) et évaluation des agents.
 
-## About Laravel
+Interface en français. Les rôles sont `admin` et `user` (`users.role`).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- PHP 8.2, Laravel 11, Eloquent, Pest, Laravel Pint
+- Inertia.js, Vue 3, Tailwind CSS, Vite
+- MySQL (XAMPP), sessions en base
+- Carte : Leaflet, Turf, proj4, `gasparesganga/php-shapefile`
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Prérequis
 
-## Learning Laravel
+- PHP 8.2+ avec les extensions Laravel habituelles (`mbstring`, `openssl`, `pdo_mysql`, `tokenizer`, `xml`, `ctype`, `json`, `fileinfo`)
+- Composer, Node.js 20+
+- MySQL via XAMPP, base `cadastre_kedougou`
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Installation
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Depuis la racine du projet (`htdocs/Cadastre_Kedougou`) :
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+```
 
-## Laravel Sponsors
+Renseigner `.env` :
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=cadastre_kedougou
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-### Premium Partners
+Puis :
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```bash
+php artisan migrate
+php artisan storage:link
+npm install
+npm run dev
+```
 
-## Contributing
+L’application est servie par Apache : `http://localhost/Cadastre_Kedougou/public`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+`npm run build` produit les assets de production. `vendor/bin/pint --dirty` formate le PHP touché. `php artisan test` lance Pest.
 
-## Code of Conduct
+## Architecture
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Chaque cas d’usage suit une seule chaîne. Le contrôleur orchestre. Il ne valide pas, n’applique pas de règle métier et n’écrit pas de requête.
 
-## Security Vulnerabilities
+```
+Requête HTTP
+  → Form Request (Store*Request ou Update*Request)
+  → Contrôleur
+  → Service (règles métier, transaction)
+  → Repository (requêtes Eloquent et eager loading)
+  → Modèle
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Couche | Dossier | Rôle |
+| --- | --- | --- |
+| Form Request | `app/Http/Requests/{Domaine}` | `authorize()`, `rules()`, messages français |
+| Contrôleur | `app/Http/Controllers` | Appeler le service avec `$request->validated()`, répondre (redirect Inertia ou JSON) |
+| Service | `app/Services` | Cas d’usage, `DB::transaction()`, règles (NICAD, doublon, délai, rôle) |
+| Repository | `app/Repositories` | Lectures et écritures Eloquent, `with()` / `withCount()` |
+| Modèle | `app/Models` | Relations, casts, `$fillable`, scopes locaux |
+| Page Vue | `resources/js/Pages` | Affichage. Le nom du fichier est le chemin Inertia |
 
-## License
+Les pages de traitement des dossiers restent dans `resources/js/Pages/traitementDissier`.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Eloquent reste l’accès aux données. Un repository ne réécrit pas le query builder : il regroupe les requêtes d’un modèle et les relations à charger, pour qu’un écran ne relance pas une requête par ligne.
+
+### Form Request
+
+Deux classes par ressource qui crée et met à jour, comme dans la [documentation validation](https://laravel.com/docs/11.x/validation#form-request-validation) :
+
+```bash
+php artisan make:request Dossier/StoreDossierRequest
+php artisan make:request Dossier/UpdateDossierRequest
+```
+
+```php
+public function store(StoreDossierRequest $request, DossierService $dossiers)
+{
+    $dossiers->creer($request->validated());
+
+    return redirect()
+        ->route('secretariat.create')
+        ->with('success', 'Dossier enregistré.');
+}
+
+public function update(UpdateDossierRequest $request, Dossier $dossier, DossierService $dossiers)
+{
+    $dossiers->mettreAJour($dossier, $request->validated());
+
+    return back()->with('success', 'Dossier mis à jour.');
+}
+```
+
+Le contrôleur reçoit uniquement le tableau validé. `authorize()` porte le droit (`admin` ou propriétaire du dossier). Les messages d’erreur sont en français.
+
+### Service
+
+Un service = un cas d’usage du métier, déjà illustré par `app/Services/AttributionDossierService.php`.
+
+```php
+class DossierService
+{
+    public function __construct(private DossierRepository $dossiers) {}
+
+    public function creer(array $donnees): Dossier
+    {
+        return DB::transaction(function () use ($donnees) {
+            $this->empecherDoublon($donnees['txt_num_dossier']);
+
+            return $this->dossiers->creer($donnees);
+        });
+    }
+}
+```
+
+La transaction et les règles (numéro déjà pris, NICAD, compte protégé, pièce PDF à supprimer avec l’enregistrement) vivent ici. Le service appelle le repository. Il ne lit pas `$request`.
+
+### Repository et requêtes N+1
+
+La [documentation Eloquent](https://laravel.com/docs/11.x/eloquent-relationships#eager-loading) charge les relations avec `with()` avant la boucle. Le repository est l’endroit unique de ce chargement.
+
+```php
+class DossierRepository
+{
+    public function paginer(): LengthAwarePaginator
+    {
+        return Dossier::query()
+            ->with([
+                'terrain.commune',
+                'titulaire',
+            ])
+            ->withCount('mutations')
+            ->latest('id')
+            ->paginate(25);
+    }
+
+    public function trouver(int $id): Dossier
+    {
+        return Dossier::query()
+            ->with(['terrain.commune', 'titulaire', 'mutations'])
+            ->findOrFail($id);
+    }
+}
+```
+
+Règles :
+
+- Toute relation affichée dans une liste est dans le `with()` de la méthode de liste.
+- Un total affiché passe par `withCount()`, pas par `$dossier->mutations->count()` dans une boucle.
+- Une relation ajoutée après coup utilise `loadMissing()`.
+- Aucune requête Eloquent dans un `foreach`, un accesseur ou une prop Inertia calculée ligne à ligne.
+- En local, `Model::preventLazyLoading()` dans `AppServiceProvider` fait échouer la requête paresseuse au lieu de la masquer.
+
+### Éviter la duplication
+
+- `Store*Request` et `Update*Request` partagent leurs règles dans une classe abstraite ou un trait du même dossier. La mise à jour ajoute `Rule::unique(...)->ignore($modele->getKey())` et `sometimes` pour les champs absents.
+- Une règle métier n’existe que dans le service. Une requête n’existe que dans le repository (ou un scope du modèle si elle tient en une contrainte réutilisable).
+- Le front réutilise `resources/js/Components` (`BaseInput`, `BaseSelect`, boutons, `DeleteModal`) avant d’en créer un nouveau.
+- Une route nommée existante est étendue. `routes/web.php` ne gagne pas de doublon.
+- Les fichiers PDF restent sur le disque `public`. La suppression de l’enregistrement supprime le fichier dans le même service.
+
+## Accès
+
+Les routes authentifiées sont dans le groupe `auth` de `routes/web.php`. L’administration (paramètres, utilisateurs, barèmes, attribution) est derrière `middleware('role:admin')`. Un autre rôle revient au tableau de bord.
+
+Le compte protégé (`User::estProtege()`) ne se modifie pas et ne se supprime pas depuis l’administration.
+
+## Données sensibles
+
+`.env`, mots de passe, codes d’accès hashés et PDF réels de dossiers (`storage`, `public/storage`) restent hors du dépôt. Les réponses Inertia n’exposent pas `password` ni le code d’accès.

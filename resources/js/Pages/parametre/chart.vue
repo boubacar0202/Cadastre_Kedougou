@@ -3,6 +3,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import BaseInput from "@/Components/BaseInput.vue"
 import BaseSelect from "@/Components/BaseSelect.vue"
 import DeleteModal from "@/Components/DeleteModal.vue"
+import BoutonSupprimer from "@/Components/BoutonSupprimer.vue"
 import { Head } from "@inertiajs/vue3";
 import MazBtn from "maz-ui/components/MazBtn";
 import { onMounted, onUnmounted, ref, watch, watchEffect, computed } from "vue";
@@ -949,15 +950,10 @@ watchEffect((onInvalidate) => {
                                         <div class="journal-ref">{{ referenceAffichee(item.reference) }}</div>
                                     </td>
                                     <td>
-                                        <MazBtn
-                                            size="sm"
-                                            color="danger"
-                                            @click="supprimerTraitement(item)"
+                                        <BoutonSupprimer
                                             :disabled="loadingDelete && traitementASupprimer?.id === item.id"
-                                            class="h-6 w-6 text-white bg-gradient-to-r from-danger-500 via-danger-600 to-danger-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-danger-300 font-medium rounded-lg text-sm px-5 py-2.5"
-                                            >
-                                            🗑
-                                        </MazBtn>
+                                            @click="supprimerTraitement(item)"
+                                        />
                                     </td>
                                 </tr>
                             </tbody>

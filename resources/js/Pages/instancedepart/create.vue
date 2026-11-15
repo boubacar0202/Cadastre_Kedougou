@@ -4,7 +4,9 @@ import BaseInput from '@/Components/BaseInput.vue';
 import BaseSelect from '@/Components/BaseSelect.vue';
 import { defineProps, onMounted } from 'vue'; 
 import { ref, computed, watch } from 'vue';
-import { Head, router, Link as InertiaLink } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
+import BoutonModifier from '@/Components/BoutonModifier.vue';
+import BoutonSupprimer from '@/Components/BoutonSupprimer.vue';
 
  
 const props = defineProps({
@@ -307,22 +309,8 @@ function supprimerCourrierDepart(depart) {
                                                 </td>
                                                 <td class="sticky right-0 z-8 px-2 py-1 border bg-white whitespace-nowrap">
                                                     <div class="flex justify-center gap-2">
-                                                        <InertiaLink :href="`/depart/editdepart/${depart.id}`">
-                                                            <MazBtn
-                                                                size="large"
-                                                                class="h-6 w-6 text-white bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-xs px-5 py-2.5 text-center"
-                                                            >
-                                                                ✏️
-                                                            </MazBtn>
-                                                        </InertiaLink>
-                                                        <MazBtn
-                                                            size="large"
-                                                            color="danger"
-                                                            @click="() => supprimerCourrierDepart(depart)"
-                                                            class="h-6 w-6 text-white bg-gradient-to-r from-red-500 via-red-600 to-red-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xs px-5 py-2.5 text-center"
-                                                        >
-                                                            🗑
-                                                        </MazBtn>
+                                                        <BoutonModifier :href="`/depart/editdepart/${depart.id}`" />
+                                                        <BoutonSupprimer @click="supprimerCourrierDepart(depart)" />
                                                     </div>
                                                 </td>
                                             </tr>

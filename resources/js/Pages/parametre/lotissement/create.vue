@@ -1,6 +1,6 @@
 <script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
-import { Head, useForm } from "@inertiajs/vue3";
+import { useForm } from "@inertiajs/vue3";
+import PageFrame from "@/Components/PageFrame.vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import MazBtn from "maz-ui/components/MazBtn";
@@ -121,23 +121,11 @@ const submitForm = () => {
 </script>
  
 <template>
-    <Head title="Lotissement" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-primary-txt">
-                Lotissements
-            </h2>
-
-        </template>
-
-        <div class="py-12">
-            <div class="flex justify-center">
-                <div class="w-full max-w-8xl">
-                    <div class="bg-white shadow-md rounded-xl"> 
-                        <div   class="p-4 border-b bg-primary rounded-t-xl">
-                            <h1 class="text-lg text-white font-semibold">Formulaire</h1>
-                        </div> 
+    <PageFrame
+        page-title="Lotissement"
+        header="Lotissements"
+        banner="Formulaire"
+    >
                         <form @submit.prevent="submitForm">
                             <div class="p-6"> 
                                 <h5 class="text-lg text-primary-txt font-bold">
@@ -228,10 +216,6 @@ const submitForm = () => {
                                 </div>
                             </div>
                         </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </AuthenticatedLayout>
+    </PageFrame>
 </template>
 

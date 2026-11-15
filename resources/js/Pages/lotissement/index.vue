@@ -2,9 +2,9 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import DefaultLayout from "@/Layouts/DefaultLayout.vue";
-import MazBtn from "maz-ui/components/MazBtn";
 import DeleteModal from "@/Components/DeleteModal.vue";
-import { Link } from '@inertiajs/vue3';
+import BoutonModifier from "@/Components/BoutonModifier.vue";
+import BoutonSupprimer from "@/Components/BoutonSupprimer.vue";
 import { Head } from "@inertiajs/vue3";
 import { ref, computed } from "vue";
 import axios from "axios";
@@ -189,31 +189,11 @@ const confirmerSuppression = async (code) => {
                           </td>
 
                           <!-- Actions -->
-                          <td class="px-2 py-1 border flex justify-center gap-2">
-                            <!-- Edit -->  
-                            <Link :href="`/parametre/lotissement/edit/${lot.id}`">
-                              <MazBtn 
-                                  size="large"  
-                                  :loading="loading"
-                                  class="h-6 w-6 text-white bg-gradient-to-r from-green-500 via-green-600 
-                                    to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
-                                    focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 
-                                    dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg text-xs px-5 
-                                    py-2.5 text-center me-2 mb-2">
-                                  ✏️
-                              </MazBtn>
-                            </Link> 
-
- 
-                            <!-- Delete -->
-                            <MazBtn size="large" color="danger" @click="supprimerLotissement(lot)" :disabled="loadingDelete"
-                                class="h-6 w-6 text-white bg-gradient-to-r from-red-500 via-red-600 
-                                  to-red-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none 
-                                  focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 
-                                  dark:shadow-lg dark:shadow-red-800/80 font-medium rounded-lg text-xs px-5 
-                                  py-2.5 text-center me-2 mb-2">
-                              🗑 
-                            </MazBtn>
+                          <td class="px-2 py-1 border">
+                            <div class="flex justify-center gap-2">
+                              <BoutonModifier :href="`/parametre/lotissement/edit/${lot.id}`" />
+                              <BoutonSupprimer :disabled="loadingDelete" @click="supprimerLotissement(lot)" />
+                            </div>
                           </td>
                         </tr>
 

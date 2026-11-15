@@ -1,6 +1,5 @@
 <script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm, router } from "@inertiajs/vue3";
+import { useForm, router } from "@inertiajs/vue3";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import MazBtn from "maz-ui/components/MazBtn";
@@ -8,6 +7,7 @@ import { onMounted, ref, watch } from "vue";
 import axios from "axios";
 import { toast } from "@/Components/AppToast";
 import { route } from "ziggy-js";
+import PageFrame from "@/Components/PageFrame.vue";
 
 // ============ ÉTATS ============
 const formVisible = ref(false);
@@ -387,22 +387,11 @@ const submitForm = function () {
 </script>
 
 <template>
-  <Head title="Mutations" />
-
-  <AuthenticatedLayout>
-    <template #header>
-      <h2 class="text-xl font-semibold leading-tight text-primary-txt">Mutations</h2>
-    </template>
-
-    <div class="py-12">
-      <div class="flex justify-center">
-        <div class="w-full max-w-8xl px-4">
-          <div class="bg-white shadow-md rounded-xl">
-            <!-- En-tête -->
-            <div class="p-4 border-b bg-primary rounded-t-xl">
-              <h1 class="text-lg text-white font-semibold">Formulaire de mutation</h1>
-            </div>
-
+  <PageFrame
+    page-title="Mutations"
+    header="Mutations"
+    banner="Formulaire de mutation"
+  >
             <form @submit.prevent="submitForm">
               <div class="p-6">
                 <!-- ============ RECHERCHE DU DOSSIER ============ -->
@@ -643,9 +632,5 @@ const submitForm = function () {
                 </div>
               </div>
             </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </AuthenticatedLayout>
+  </PageFrame>
 </template>

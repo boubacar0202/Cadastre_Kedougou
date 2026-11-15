@@ -1,6 +1,6 @@
 <script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue"; 
-import { Head, useForm, usePage } from "@inertiajs/vue3";
+import { useForm, usePage } from "@inertiajs/vue3";
+import PageFrame from "@/Components/PageFrame.vue";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
 import MazBtn from "maz-ui/components/MazBtn";
@@ -321,32 +321,16 @@ async function submitForm() {
 </script>
 
 <template>
-    <Head title="Mutations" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-primary-txt">
-                Mutations 
-            </h2>
-        </template>
-
-        <div class="py-12">
-            <div class="w-full max-w-8xl">   
+    <PageFrame
+        page-title="Mutations"
+        header="Mutations"
+        banner="Formulaire"
+    >
                 <AppCodeAccee
                     v-model="showModal"
                     :loading="isLoading"
                     @confirm="codeDaccees"
                 />
-            </div>
-
-            <div class="flex justify-center">
-                <div class="w-full max-w-7xl">
-                    <div class="bg-white shadow-md rounded-xl">
-                        <!-- En-tête du formulaire -->
-                        <div   class="p-4 border-b bg-primary">
-                            <h1 class="text-lg text-white font-semibold">Formulaire</h1>
-                        </div>
-                        <!-- Corps du formulaire -->
                         <form @submit.prevent="submitForm">
                             <div class="p-6"> 
                                 <div class="flex justify-center">
@@ -1000,10 +984,6 @@ async function submitForm() {
                                 </div>
                             </div>
                         </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </AuthenticatedLayout>
+    </PageFrame>
 </template>
 

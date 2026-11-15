@@ -149,7 +149,9 @@ class DepartController extends Controller
             'txt_prenomNomcd'               => 'nullable|string|max:255',
             'txt_numLotcd'                  => 'nullable|string|max:50',      // ✅ Limite cohérente avec la BDD
             'txt_superficiecd'              => 'nullable|numeric|min:0|max:999999',      // ✅ Idem
-            'txt_numTFcd'                   => 'nullable|string|max:20',
+            'txt_numTitreFonciercd'         => 'nullable|string|max:20',
+            'txt_TitreMerecd'               => 'nullable|string|max:20',
+            'txt_NICadcd'                   => 'nullable|string|max:25',
             'txt_lotissementcd'             => 'nullable|string|max:100',
 
             'txt_objetcd'                   => 'nullable|string|max:255',
@@ -204,7 +206,9 @@ class DepartController extends Controller
             'txt_prenomNomcd'               => $validateData['txt_prenomNomcd'] ?? null,
             'txt_numLotcd'                  => $validateData['txt_numLotcd'] ?? null,
             'txt_superficiecd'              => $validateData['txt_superficiecd'] ?? null,
-            'txt_numTFcd'                   => $validateData['txt_numTFcd'] ?? null,
+            'txt_numTitreFonciercd'         => $validateData['txt_numTitreFonciercd'] ?? null,
+            'txt_TitreMerecd'               => $validateData['txt_TitreMerecd'] ?? null,
+            'txt_NICadcd'                   => $validateData['txt_NICadcd'] ?? null,
             'txt_lotissementcd'             => $validateData['txt_lotissementcd'] ?? null,
             'txt_objetcd'                   => $validateData['txt_objetcd'] ?? null,
             'txt_destinatairecd'            => $validateData['txt_destinatairecd'],
@@ -268,7 +272,9 @@ class DepartController extends Controller
             'txt_prenomNomcd' => 'nullable|string|max:255',
             'txt_numLotcd' => 'nullable|string|max:255',
             'txt_superficiecd' => 'nullable|string|max:255',
-            'txt_numTFcd' => 'nullable|string|max:255',
+            'txt_numTitreFonciercd' => 'nullable|string|max:255',
+            'txt_TitreMerecd' => 'nullable|string|max:255',
+            'txt_NICadcd' => 'nullable|string|max:255',
             'txt_lotissementcd' => 'nullable|string|max:255',
             'txt_objetcd' => 'required|string|max:255',
             'txt_destinatairecd' => 'required|string|max:255',
