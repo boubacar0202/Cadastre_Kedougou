@@ -212,41 +212,6 @@ function rognerSegment(a, b, cadre) {
     ];
 }
 
-function distancePointSegment(point, a, b) {
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const longueur = dx * dx + dy * dy || 1;
-    const t = Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / longueur));
-    return Math.hypot(point.x - (a.x + t * dx), point.y - (a.y + t * dy));
-}
-
-function contourOuvert(anneau, sujet) {
-    let index = 0;
-    let distance = Infinity;
-    for (let i = 0; i < anneau.length; i += 1) {
-        const suivant = anneau[(i + 1) % anneau.length];
-        const milieu = { x: (anneau[i].x + suivant.x) / 2, y: (anneau[i].y + suivant.y) / 2 };
-        let ecart = Infinity;
-        for (let j = 0; j < sujet.length; j += 1) {
-            ecart = Math.min(ecart, distancePointSegment(milieu, sujet[j], sujet[(j + 1) % sujet.length]));
-        }
-        if (ecart < distance) {
-            distance = ecart;
-            index = i;
-        }
-    }
-    if (distance > 45) return null;
-    const nombre = anneau.length;
-    const precedent = (index - 1 + nombre) % nombre;
-    const suivant = (index + 1) % nombre;
-    const apres = (index + 2) % nombre;
-    return [
-        [anneau[precedent], anneau[index]],
-        [anneau[index], anneau[suivant]],
-        [anneau[suivant], anneau[apres]],
-    ];
-}
-
 function versPage(point, cadre, echelle, vue) {
     const centreX = (cadre.minX + cadre.maxX) / 2;
     const centreY = (cadre.minY + cadre.maxY) / 2;
@@ -441,10 +406,8 @@ function analyserCotes(anneau, voisins, tous, lignesSection = []) {
 }
 
 function lignesVoisin(voisin) {
-    const titre = valeurOuVide(voisin?.titre);
-    if (titre) return [/^(tf\b|t\.)/i.test(titre) ? titre : `TF ${titre}`];
     const lot = valeurOuVide(voisin?.lot);
-    return lot ? [`Lot n°${lot}`, 'TNI'] : ['TNI'];
+    return lot ? [`Lot n°${lot}`] : ['TNI'];
 }
 
 function nomRue(ecart) {
@@ -613,15 +576,8 @@ export function commandesExtrait({ bureau, ville, infos, sujet, parcelles, secti
             ajouter({ type: 'polygon', points: rogne, fill: null, stroke, width });
         }
     };
-    const ligneSituation = (a, b, width) => {
-        const segment = rognerSegment(pageSituation(a), pageSituation(b), situation);
-        if (!segment) return;
-        ajouter({ type: 'line', x1: segment[0][0], y1: segment[0][1], x2: segment[1][0], y2: segment[1][1], width });
-    };
     autour.forEach((parcelle) => {
-        const ouvert = contourOuvert(parcelle.points, sujetLocal);
-        if (ouvert) ouvert.forEach(([depart, arrivee]) => ligneSituation(depart, arrivee, 0.15));
-        else ajouterSituation(parcelle.points, [0, 0, 0], 0.15);
+        ajouterSituation(parcelle.points, [0, 0, 0], 0.15);
         const [x, y] = pageSituation(centreDe(parcelle.points));
         if (x > situation.x + 2 && x < situation.x + situation.w - 2 && y > situation.y + 2 && y < situation.y + situation.h - 2) {
             textePage(x, y, parcelle.lot, 1.5, 'normal', 'middle');

@@ -266,7 +266,7 @@ function utmToGps(est, nord) {
     }
 }
 
-const TYPES_LOURDS = new Set(['limite_parcelle', 'numero_parcelle']);
+const TYPES_LOURDS = new Set(['limite_parcelle', 'numero_parcelle', 'numero_lot']);
 
 function isHeavyShapefile(shp) {
     if (TYPES_LOURDS.has(shp?.type_entite)) return true;
@@ -761,8 +761,27 @@ function closeShapefileModal() {
 // ============================================================
 // 19. CHARGEMENT SHAPEFILES
 // ============================================================
+function estNumeroPlan(shp) {
+    return shp?.type_entite === 'numero_parcelle' || shp?.type_entite === 'numero_lot';
+}
+
+function denominateurCarte(zoom) {
+    if (!map.value || !Number.isFinite(zoom)) return Infinity;
+    const latRad = map.value.getCenter().lat * Math.PI / 180;
+    return (591657550.5 * Math.cos(latRad)) / (2 ** zoom);
+}
+
+function libelleNumeroPlan(shp, feature) {
+    const brut = String(feature?.properties?.TEXT ?? feature?.properties?.text ?? '').trim();
+    if (shp?.type_entite === 'numero_parcelle') return chiffresCadastre(brut, 5);
+    const chiffres = brut.replace(/\D/g, '');
+    if (!chiffres) return '';
+    return String(parseInt(chiffres, 10));
+}
+
 function shapefileVisibleAuZoom(shp, zoom) {
     if (!shp.visible) return false;
+    if (estNumeroPlan(shp)) return denominateurCarte(zoom) <= 3000;
     if (featuredShapefileId.value === shp.id) return true;
     return !(isHeavyShapefile(shp) && zoom < ZOOM_THRESHOLD_POINTS);
 }
@@ -834,7 +853,7 @@ function geometrieDansLimites(feature, bounds) {
 
 function preparerAffichage(shp, data) {
     if (!isHeavyShapefile(shp) || !map.value) {
-        return { data, textes: data.features.length <= 800 };
+        return { data, textes: estNumeroPlan(shp) || data.features.length <= 800 };
     }
 
     const bounds = map.value.getBounds().pad(0.35);
@@ -846,7 +865,7 @@ function preparerAffichage(shp, data) {
 
     return {
         data: { type: 'FeatureCollection', features },
-        textes: features.length > 0 && features.length <= 250,
+        textes: estNumeroPlan(shp) || (features.length > 0 && features.length <= 250),
     };
 }
 
@@ -956,6 +975,18 @@ async function chargerShapefiles() {
 }
 
 function marqueurEntite(feature, latlng, shp, enAvant, textes) {
+    if (estNumeroPlan(shp)) {
+        const texte = libelleNumeroPlan(shp, feature);
+        if (!texte) return L.circleMarker(latlng, { radius: 1, opacity: 0, fillOpacity: 0 });
+        return L.marker(latlng, {
+            icon: L.divIcon({
+                className: 'shp-chiffre',
+                html: `<span>${escapeHtml(texte)}</span>`,
+                iconSize: [52, 14],
+                iconAnchor: [26, 7],
+            }),
+        });
+    }
     const texte = textes ? String(feature?.properties?.TEXT ?? '').trim() : '';
     if (texte) {
         return L.marker(latlng, {
@@ -1396,6 +1427,7 @@ async function limitesSectionAutour(polygone) {
 async function parcellesAutour(polygone, echelleSituation = 2000) {
     const parcelles = await lireCouches('limite_parcelle');
     const numeros = await lireCouches('numero_parcelle');
+    const pointsLot = await lireCouches('numero_lot');
     const sections = await lireCouches('limite_section');
     const numerosSection = await lireCouches('numero_section');
     let zone = null;
@@ -1438,8 +1470,10 @@ async function parcellesAutour(polygone, echelleSituation = 2000) {
         } catch (e) {
             touche = false;
         }
-        if (!touche) {
-            return { feature, section: '', parcelle: '', lotissement: '', touche };
+        const pointLot = pointsLot.find((point) => pointDansPolygone(point, feature)) || null;
+        const lotPoint = texteAttribut(pointLot);
+        if (lotPoint) {
+            return { feature, section: '', parcelle: '', lotissement: '', touche, lotPoint };
         }
         const pointNumero = numeros.find((point) => pointDansPolygone(point, feature)) || null;
         const sectionPoly = sectionContenant(feature, sections);
@@ -1449,9 +1483,10 @@ async function parcellesAutour(polygone, echelleSituation = 2000) {
             parcelle: chiffresCadastre(texteAttribut(pointNumero), 5),
             lotissement: coucheAttribut(feature),
             touche,
+            lotPoint: '',
         };
     });
-    const consultables = demandes.filter((item) => item.touche && item.section && item.parcelle);
+    const consultables = demandes.filter((item) => !item.lotPoint && item.section && item.parcelle);
     const lots = new Map();
     if (consultables.length) {
         const resultats = await consulterBase(consultables.map(({ section, parcelle, lotissement }) => ({
@@ -1469,8 +1504,8 @@ async function parcellesAutour(polygone, echelleSituation = 2000) {
     return demandes.map((demande) => {
         return {
             ring: anneauPrincipal(demande.feature),
-            lot: lots.get(`${demande.section}|${demande.parcelle}`)?.lot || '',
-            titre: lots.get(`${demande.section}|${demande.parcelle}`)?.titre || '',
+            lot: demande.lotPoint || lots.get(`${demande.section}|${demande.parcelle}`)?.lot || '',
+            titre: '',
             touche: demande.touche,
         };
     }).filter((item) => item.ring.length >= 3);
@@ -3345,6 +3380,22 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
+.shp-chiffre {
+    background: transparent !important;
+    border: none !important;
+}
+.shp-chiffre span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #111111;
+    background: transparent;
+    border: none;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 1;
+}
 .shp-numero {
     background: transparent !important;
     border: none !important;
