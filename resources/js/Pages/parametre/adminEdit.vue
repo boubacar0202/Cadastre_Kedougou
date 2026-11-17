@@ -6,7 +6,7 @@ import MazBtn from "maz-ui/components/MazBtn";
 import { toast } from "@/Components/AppToast";
 import BaseInput from "@/Components/BaseInput.vue";
 import BaseSelect from "@/Components/BaseSelect.vue";
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 defineOptions({ layout: DefaultLayout });
 
@@ -25,12 +25,33 @@ const roleOptions = [
     { label: "Utilisateur", value: "user" },
 ];
 
+const fonctions = [
+    { label: "Chef de Bureau", value: "Chef de Bureau" },
+    { label: "Géomètre", value: "Géomètre" },
+    { label: "Agent", value: "Agent" },
+    { label: "Particulier", value: "Particulier" },
+    { label: "Secrétaire", value: "Secrétaire" },
+];
+
 const form = useForm({
     name: user?.name || "",
     email: user?.email || "",
     password: "",
     password_confirmation: "",
     role: user?.role || "",
+    fonction: user?.fonction || "",
+});
+
+const fonctionOptions = computed(() => (
+    form.role === "admin"
+        ? fonctions
+        : fonctions.filter((option) => option.value !== "Chef de Bureau")
+));
+
+watch(() => form.role, (role) => {
+    if (role !== "admin" && form.fonction === "Chef de Bureau") {
+        form.fonction = "";
+    }
 });
 
 const submitForm = () => {
@@ -133,6 +154,15 @@ const submitForm = () => {
                                         :options="roleOptions"
                                         v-model="form.role"
                                         :custom-error="form.errors.role"
+                                    />
+                                    <BaseSelect
+                                        label="Fonction"
+                                        name="fonction"
+                                        required
+                                        placeholder="Choisir une fonction"
+                                        :options="fonctionOptions"
+                                        v-model="form.fonction"
+                                        :custom-error="form.errors.fonction"
                                     /> 
 
                                 </div>

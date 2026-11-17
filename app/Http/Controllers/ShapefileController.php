@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CodeAcces;
 use App\Models\PointDensifier;
 use App\Models\Shapefile;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -48,6 +49,7 @@ class ShapefileController extends Controller
                 'departement', 'arrondissement', 'commune'
             ])->get(),
             'shapefiles' => Shapefile::latest()->get(),
+            'signataireExtrait' => User::chefDeBureau()?->name ?? '',
         ]);
     }
 
