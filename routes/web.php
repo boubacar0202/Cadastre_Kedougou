@@ -26,7 +26,8 @@ use App\Http\Controllers\TraitementDossierController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MutationController;
 use App\Http\Controllers\ParametreController;
-use App\Http\Controllers\PlanController;  
+use App\Http\Controllers\PlanController;
+use App\Http\Controllers\RechercheAvanceeController;  
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\ShapefileController;
 use App\Models\PointDensifier; 
@@ -237,6 +238,7 @@ Route::middleware('auth')->group(function () {
         // 📊 Chart / Évaluation - Page des graphiques
         Route::get('/chart', [ParametreController::class, 'chart'])->name('parametre.chart');
         Route::get('/evaluation-user', [TraitementDossierController::class, 'evaluation'])->name('parametre.evaluation.user');
+        Route::get('/recherche-avancee', [RechercheAvanceeController::class, 'create'])->name('parametre.rechercheAvancee.create');
 
         // Recueil de textes
         Route::get('/service/create', [ServiceController::class, 'create'])->name('parametre.service.create');

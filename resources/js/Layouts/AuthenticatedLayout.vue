@@ -601,7 +601,19 @@ onUnmounted(() => {
                                         <path d="M14 14v6M14 20h6M17 14v6" stroke="#4facfe" stroke-width="1.8" stroke-linecap="round"/>
                                     </svg>
                                     Evaluation User
-                                </NavLink> 
+                                </NavLink>
+
+                                <NavLink
+                                    :href="route('parametre.rechercheAvancee.create')" :active="route().current('parametre.rechercheAvancee.create')"
+                                    class="relative hover:bg-primary-dark hover:text-white hover:font-bold hover:text-1xl p-2
+                                    rounded-xl text-lg text-primary-txt flex items-center"
+                                >
+                                    <svg class="w-6 h-6 mr-4 shrink-0" viewBox="0 0 24 24" fill="none">
+                                        <circle cx="10" cy="10" r="6" stroke="#ff7a18" stroke-width="2"/>
+                                        <path d="M15 15l5 5" stroke="#4facfe" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    Recherche Avancée
+                                </NavLink>
 
                             </div>
                             </template>
